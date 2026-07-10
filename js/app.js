@@ -80,6 +80,23 @@ function youVersionAttributionText() {
   return "This translation is provided via the YouVersion Platform API. Confirm and add its required copyright attribution (Settings → Bible versions).";
 }
 
+const STATIC_VERSION_ATTRIBUTIONS = {
+  ASV: "American Standard Version (1901). Public domain.",
+  KJV: "King James Version (1769 Oxford edition). Public domain.",
+  YLT: "Young's Literal Translation (1898), Robert Young. Public domain.",
+};
+
+// Attribution line for any version currently on screen -- YouVersion gets its
+// (possibly copyright-required) notice, local versions and the bible-api.com
+// online versions get a short public-domain credit. Returns null for an
+// unrecognized id rather than fabricating text.
+function versionAttributionText(id) {
+  if (id === YOUVERSION_ID) return youVersionAttributionText();
+  if (STATIC_VERSION_ATTRIBUTIONS[id]) return STATIC_VERSION_ATTRIBUTIONS[id];
+  const onlineName = typeof OnlineBible !== "undefined" && OnlineBible.ONLINE_VERSIONS[id];
+  return onlineName ? `${onlineName}. Public domain.` : null;
+}
+
 function activeCommentaryIds() {
   return Object.entries(state.settings.commentaries).filter(([, on]) => on).map(([id]) => id);
 }
@@ -170,23 +187,37 @@ function renderVersionToggles() {
   });
 }
 
+// Set by renderChapter() after each attempt to load YouVersion text, so the
+// Settings UI knows whether the current key (if any) is actually working.
+let youVersionHasError = false;
+
+// Keeps the Settings checkbox in sync when the version was toggled some
+// other way (e.g. picked from the toolbar quick-select dropdown instead),
+// and keeps the key/Bible ID fields tucked away unless they're needed --
+// shown only while the version is on and there's no working key yet, so
+// Settings stays a single "NIV" checkbox once it's set up and working.
+function syncYouVersionToggleUI() {
+  const toggle = document.getElementById("youversionToggle");
+  const fields = document.getElementById("youversionFields");
+  toggle.checked = !!state.settings.versions[YOUVERSION_ID];
+  const needsAttention = !state.settings.youversionApiKey || youVersionHasError;
+  fields.classList.toggle("fields-hidden", !(toggle.checked && needsAttention));
+}
+
 function initYouVersionSettings() {
   const toggle = document.getElementById("youversionToggle");
   const keyInput = document.getElementById("youversionApiKeyInput");
   const bibleIdInput = document.getElementById("youversionBibleIdInput");
-  const fields = document.getElementById("youversionFields");
 
-  const syncFieldsEnabled = () => fields.classList.toggle("disabled-fields", !toggle.checked);
-
-  toggle.checked = !!state.settings.versions[YOUVERSION_ID];
   keyInput.value = state.settings.youversionApiKey;
   bibleIdInput.value = state.settings.youversionBibleId;
-  syncFieldsEnabled();
+  syncYouVersionToggleUI();
 
   toggle.addEventListener("change", () => {
     state.settings.versions[YOUVERSION_ID] = toggle.checked;
     saveSettings();
-    syncFieldsEnabled();
+    syncYouVersionToggleUI();
+    syncQuickVersionSelect();
     renderChapter();
   });
   keyInput.addEventListener("change", () => {
@@ -198,6 +229,7 @@ function initYouVersionSettings() {
     state.settings.youversionBibleId = bibleIdInput.value.trim() || "111";
     bibleIdInput.value = state.settings.youversionBibleId;
     saveSettings();
+    populateQuickVersionSelect(); // dropdown label (e.g. "NIV") depends on the bible id
     renderChapter();
   });
 }
@@ -233,6 +265,15 @@ function renderCommentaryToggles() {
 function populateQuickVersionSelect() {
   const sel = document.getElementById("quickVersionSelect");
   sel.innerHTML = "";
+
+  const primaryGroup = document.createElement("optgroup");
+  primaryGroup.label = "Primary";
+  const yvOpt = document.createElement("option");
+  yvOpt.value = YOUVERSION_ID;
+  yvOpt.textContent = versionTagLabel(YOUVERSION_ID);
+  primaryGroup.appendChild(yvOpt);
+  sel.appendChild(primaryGroup);
+
   const localGroup = document.createElement("optgroup");
   localGroup.label = "Offline";
   for (const id of LOCAL_VERSION_IDS) {
@@ -324,6 +365,11 @@ async function renderChapter() {
   }
   const [{ versionIds, texts, errors }] = await Promise.all(promises);
 
+  // Let Settings know whether YouVersion actually worked this render, so its
+  // key/Bible ID fields auto-reveal only when something needs fixing.
+  youVersionHasError = versionIds.includes(YOUVERSION_ID) && !!errors[YOUVERSION_ID];
+  if (document.getElementById("youversionToggle")) syncYouVersionToggleUI();
+
   // Union of verse numbers across all active versions (an online fetch failure
   // for one version shouldn't hide verses the other active versions do have).
   const verseNumSet = new Set();
@@ -346,7 +392,11 @@ async function renderChapter() {
     return;
   }
 
-  const header = renderBookHeader(meta, state.chapter);
+  // Only attribute versions that actually produced text for this chapter --
+  // an active-but-failed version (e.g. YouVersion with no key) shouldn't get
+  // a copyright credit for text that isn't actually shown.
+  const renderedVersionIds = versionIds.filter((id) => texts[id] && Object.keys(texts[id]).length);
+  const header = renderBookHeader(meta, state.chapter, renderedVersionIds);
   let versesHtml = "";
   let fullChapterText = "";
 
@@ -417,11 +467,7 @@ async function renderChapter() {
       : "";
   }
 
-  const attributionHtml = texts[YOUVERSION_ID] && Object.keys(texts[YOUVERSION_ID]).length
-    ? `<p class="version-attribution">${escapeHtml(youVersionAttributionText())}</p>`
-    : "";
-
-  content.innerHTML = header + `<div class="verses">${versesHtml}</div>` + placesHtml + attributionHtml;
+  content.innerHTML = header + `<div class="verses">${versesHtml}</div>` + placesHtml;
   content.classList.toggle("notes-disabled", !state.settings.showNotes);
 
   if (state.settings.showNotes) {
@@ -542,7 +588,7 @@ function markChapterAndBookNoteIndicators() {
   }
 }
 
-function renderBookHeader(meta, chapter) {
+function renderBookHeader(meta, chapter, versionIds) {
   const art = state.settings.showBookArt ? (window.BOOK_ART && window.BOOK_ART[meta.a]) || null : null;
   const artHtml = !state.settings.showBookArt
     ? ""
@@ -553,11 +599,19 @@ function renderBookHeader(meta, chapter) {
        </a>`
     : `<div class="book-art book-art-placeholder"><span class="illum-ornament">&#10047;</span></div>`;
 
+  const attributions = (versionIds || [])
+    .map((id) => versionAttributionText(id))
+    .filter(Boolean);
+  const attributionHtml = attributions.length
+    ? `<div class="version-attribution">${attributions.map(escapeHtml).join(" &nbsp;·&nbsp; ")}</div>`
+    : "";
+
   return `<header class="book-header">
       ${artHtml}
       <div class="book-title-block">
         <h1>${escapeHtml(meta.n)}</h1>
         <div class="chapter-label">Chapter ${chapter}</div>
+        ${attributionHtml}
       </div>
     </header>`;
 }
@@ -1019,6 +1073,7 @@ function initUI() {
     state.settings.versions[e.target.value] = true;
     saveSettings();
     renderVersionToggles();
+    syncYouVersionToggleUI();
     renderChapter();
   });
 

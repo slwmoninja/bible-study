@@ -279,6 +279,7 @@ async function getChapterTexts() {
   const meta = bookMeta(state.book);
   const versionIds = activeVersionIds();
   const results = {};
+  const errors = {};
   await Promise.all(versionIds.map(async (id) => {
     try {
       if (id === YOUVERSION_ID) {
@@ -290,10 +291,17 @@ async function getChapterTexts() {
         results[id] = (window.BIBLE_TEXT[id][state.book] || {})[String(state.chapter)] || {};
       }
     } catch (e) {
-      results[id] = null; // e.g. WifiRequiredError -- skip this version's text, don't fail the whole render
+      // Don't fail the whole render over one version's error -- other active
+      // versions may still have text -- but remember why, so a total failure
+      // (e.g. the only active version) can show a helpful message instead of
+      // a silent blank page.
+      results[id] = null;
+      errors[id] = e instanceof WifiRequiredError
+        ? "Blocked: \"Wi-Fi only\" is on and this device isn't on Wi-Fi."
+        : e.message;
     }
   }));
-  return { versionIds, texts: results };
+  return { versionIds, texts: results, errors };
 }
 
 async function renderChapter() {
@@ -314,7 +322,7 @@ async function renderChapter() {
   for (const id of commentaryIds) {
     promises.push(Loader.commentary(id, state.book));
   }
-  const [{ versionIds, texts }] = await Promise.all(promises);
+  const [{ versionIds, texts, errors }] = await Promise.all(promises);
 
   // Union of verse numbers across all active versions (an online fetch failure
   // for one version shouldn't hide verses the other active versions do have).
@@ -324,6 +332,19 @@ async function renderChapter() {
   }
   const verseNums = [...verseNumSet].sort((a, b) => Number(a) - Number(b));
   const showVersionTags = versionIds.length > 1;
+
+  // Every active version failed (e.g. the only one on is YouVersion with no/bad
+  // API key) -- show why instead of silently rendering an empty chapter.
+  if (!verseNums.length) {
+    const header = renderBookHeader(meta, state.chapter);
+    const messages = versionIds.map((id) => errors[id]).filter(Boolean);
+    content.innerHTML = header + `<div class="no-results" style="margin-top:1rem;">
+        ${messages.length ? messages.map(escapeHtml).join("<br>") : "No text available for this chapter with the current version settings."}
+      </div>`;
+    populateVerseSelect([]);
+    pendingHighlight = null;
+    return;
+  }
 
   const header = renderBookHeader(meta, state.chapter);
   let versesHtml = "";

@@ -626,7 +626,7 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
   gap: 0.15rem;
 }
 #youversionFields label.settings-note { margin-top: 0.4rem; }
-#youversionFields input[type="text"] {
+#youversionFields input[type="text"], #youversionFields input[type="password"] {
   font-family: inherit;
   font-size: 0.9rem;
   padding: 0.35rem 0.5rem;

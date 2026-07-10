@@ -2,7 +2,7 @@
 // after the first visit. Book/lexicon/search data files fetched on demand are cached
 // opportunistically as they're loaded (runtime cache), growing offline coverage over time.
 
-const CACHE_VERSION = "bible-study-v1";
+const CACHE_VERSION = "bible-study-v2";
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -11,6 +11,7 @@ const CORE_ASSETS = [
   "./js/app.js",
   "./js/loader.js",
   "./js/online.js",
+  "./js/youversion.js",
   "./js/notes.js",
   "./data/book_meta.js",
   "./data/book_art.js",

@@ -1,0 +1,674 @@
+:root {
+  --parchment: #f2e6c9;
+  --parchment-dark: #e6d3a3;
+  --ink: #3a2a1a;
+  --ink-soft: #5c4630;
+  --gold: #a8802a;
+  --gold-bright: #c9a13b;
+  --maroon: #6b1f2a;
+  --maroon-dark: #4a1119;
+  --border-ornate: #8a6a2a;
+  --highlight: #fff8e6;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+  color: var(--ink);
+  font-family: Georgia, "Palatino Linotype", "Book Antiqua", serif;
+  min-height: 100vh;
+}
+
+/* ---------- Top bar ---------- */
+
+header.topbar {
+  /* Aged-leather look: crosshatched grain, mottled worn patches, and darkened
+     edges over the maroon base -- a leather-bound-cover texture for the toolbar. */
+  background:
+    repeating-linear-gradient(95deg, rgba(0,0,0,0.14) 0px, rgba(0,0,0,0.14) 1px, transparent 1px, transparent 4px),
+    repeating-linear-gradient(5deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 5px),
+    radial-gradient(ellipse 45% 240% at 6% 50%, rgba(0,0,0,0.3), transparent 70%),
+    radial-gradient(ellipse 40% 240% at 94% 50%, rgba(0,0,0,0.3), transparent 70%),
+    radial-gradient(ellipse 25% 180% at 30% 40%, rgba(255,255,255,0.08), transparent 70%),
+    radial-gradient(ellipse 30% 180% at 70% 60%, rgba(0,0,0,0.12), transparent 70%),
+    radial-gradient(ellipse 60% 160% at 50% 20%, rgba(255,255,255,0.06), transparent 70%),
+    linear-gradient(var(--maroon), var(--maroon-dark));
+  color: var(--highlight);
+  padding: 0.6rem 0.8rem;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 3px double var(--gold-bright);
+}
+
+.icon-btn {
+  width: 2.1rem;
+  height: 2.1rem;
+  font-size: 1.2rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--gold-bright);
+  border-radius: 50%;
+  background: rgba(0,0,0,0.25);
+  color: var(--gold-bright);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+.icon-btn:hover { background: rgba(0,0,0,0.4); }
+
+.settings-icon-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.6rem;
+  z-index: 21;
+}
+
+.search-popup-row { display: flex; gap: 0.4rem; margin-bottom: 0.4rem; }
+.search-popup-row input {
+  flex: 1;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid var(--gold);
+}
+.search-popup-row button {
+  font-family: inherit;
+  border: 1px solid var(--gold-bright);
+  background: var(--gold);
+  color: var(--maroon-dark);
+  font-weight: bold;
+  border-radius: 4px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+}
+.search-popup-row button:hover { background: var(--gold-bright); }
+
+.topbar-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding-right: 2.5rem; /* keep clear of the settings icon in the top-right */
+  margin: 0 0 0.5rem 0;
+}
+
+.title-main {
+  font-size: 1.3rem;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  color: var(--gold-bright);
+  /* Subtle embossed/engraved 3D feel: a faint light bevel above, a soft dark
+     depth shadow below -- restrained, not a heavy drop-shadow effect. */
+  text-shadow:
+    0 -1px 0 rgba(255,248,230,0.3),
+    0 1px 1px rgba(0,0,0,0.55),
+    0 2px 3px rgba(0,0,0,0.4);
+}
+
+.title-sub {
+  font-size: 0.75rem;
+  font-weight: normal;
+  color: var(--highlight);
+  opacity: 0.8;
+  text-align: right;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.controls-row select, .controls-row input, .controls-row button {
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--gold);
+  background: var(--highlight);
+  color: var(--ink);
+}
+
+.controls-row input[type="text"] {
+  flex: 1 1 160px;
+  min-width: 100px;
+}
+
+.controls-row button {
+  background: var(--gold);
+  color: var(--maroon-dark);
+  font-weight: bold;
+  cursor: pointer;
+  border-color: var(--gold-bright);
+}
+.controls-row button:hover { background: var(--gold-bright); }
+
+/* Search is opened non-modally (dialog.show(), not showModal()) so the reader
+   stays visible and interactive behind it -- clicking a result navigates the
+   page underneath while this panel stays open for browsing more results.
+   Anchored bottom-right, out of the way of the top toolbar, with its own
+   close ("x") button in the header to dismiss it when done. */
+#searchModal {
+  position: fixed;
+  top: auto;
+  left: auto;
+  right: 1rem;
+  bottom: 1rem;
+  margin: 0;
+  width: min(380px, 94vw);
+  max-height: min(70vh, 560px);
+  z-index: 30;
+}
+/* display must stay conditional on [open] -- an unconditional `display: flex`
+   here would out-specificity the UA's `dialog:not([open]) { display: none }`
+   and leave the panel permanently visible even when closed. */
+#searchModal[open] {
+  display: flex;
+  flex-direction: column;
+}
+#searchModal .modal-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: none;
+}
+
+#searchResults {
+  max-height: min(45vh, 380px);
+  overflow-y: auto;
+  background: var(--highlight);
+  border-radius: 4px;
+  color: var(--ink);
+}
+#searchResults:empty { display: none; }
+
+.search-hit, .results-label, .no-results {
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--parchment-dark);
+  font-size: 0.9rem;
+}
+.results-label { font-weight: bold; color: var(--maroon); background: var(--parchment); }
+.search-hit { cursor: pointer; }
+.search-hit:hover { background: var(--parchment); }
+.search-highlight { color: #c81e1e; background: none; font-weight: bold; }
+
+/* ---------- Content ---------- */
+
+main#content {
+  max-width: 780px;
+  margin: 1.2rem auto 3rem;
+  padding: 1.5rem 1.5rem 2rem;
+  background-color: var(--parchment);
+  /* Subtle manuscript-paper texture: fine fiber grain (the two small dotted
+     radial-gradients) plus faint, uneven aging blotches -- all understated so
+     the text stays the focal point, not the paper. */
+  background-image:
+    radial-gradient(rgba(90,60,20,0.05) 1px, transparent 1px),
+    radial-gradient(rgba(90,60,20,0.035) 1px, transparent 1px),
+    radial-gradient(ellipse 60% 45% at 12% 8%, rgba(255,255,255,0.3), transparent 60%),
+    radial-gradient(ellipse 55% 40% at 88% 92%, rgba(110,80,35,0.07), transparent 60%),
+    radial-gradient(ellipse 40% 35% at 70% 20%, rgba(110,80,35,0.04), transparent 65%);
+  background-size: 3px 3px, 7px 7px, auto, auto, auto;
+  background-position: 0 0, 2px 3px, 0 0, 0 0, 0 0;
+  border: none;
+  border-radius: 6px;
+  /* Subtle 3D effect standing in for a border: a soft ambient drop shadow all
+     round plus a faint inner highlight along the top/left edge, like a page
+     resting slightly raised off the white background. */
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.7) inset,
+    0 10px 28px rgba(0,0,0,0.18),
+    0 2px 6px rgba(0,0,0,0.12);
+  position: relative;
+}
+
+.loading { text-align: center; padding: 3rem; color: var(--ink-soft); font-style: italic; }
+
+/* Book header with illuminated art */
+
+.book-header {
+  display: flex;
+  gap: 1.2rem;
+  align-items: center;
+  border-bottom: 3px double var(--border-ornate);
+  padding-bottom: 1rem;
+  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.book-art {
+  display: block;
+  text-decoration: none;
+  color: var(--ink-soft);
+  max-width: 200px;
+  flex-shrink: 0;
+}
+.book-art img {
+  height: 128px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  display: block;
+}
+.art-caption {
+  display: block;
+  font-size: 0.7rem;
+  text-align: center;
+  margin-top: 0.3rem;
+  font-style: italic;
+}
+.book-art-placeholder {
+  width: 128px;
+  height: 128px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  background: radial-gradient(circle, var(--parchment-dark), var(--parchment));
+}
+.illum-ornament { font-size: 3rem; color: var(--gold); }
+
+.book-title-block h1 {
+  font-family: "Palatino Linotype", Georgia, serif;
+  color: #000080;
+  margin: 0;
+  font-size: 2.6rem;
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.4);
+}
+.chapter-label {
+  color: #1e90ff;
+  font-style: italic;
+  font-size: 1.1rem;
+}
+
+/* Pen cursor: hints that double-clicking/double-tapping a verse, chapter title,
+   or book title adds a note there. Hotspot (3,23) lines the cursor's nib tip up
+   with the pointer position. Falls back to plain "text" cursor if unsupported. */
+:root {
+  --pen-cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26'><path d='M3,23 C2,18 5,11 9,8 C13,5 18,3 23,2 C21,6 17,9 14,12 C10,16 6,20 3,23 Z' fill='%23c9a13b' stroke='%233a2a1a' stroke-width='0.7'/><path d='M7,17 L11,13 M9,14.5 L13,10.5 M11,12 L15,8' stroke='%233a2a1a' stroke-width='0.5' opacity='0.55' fill='none'/><circle cx='3.2' cy='22.5' r='1.3' fill='%236b1f2a'/></svg>") 3 23, text;
+}
+
+/* Verses */
+
+.verses { line-height: 1.9; font-size: 1.15rem; }
+
+.verse {
+  margin-bottom: 0.9rem;
+  position: relative;
+  cursor: var(--pen-cursor);
+}
+.verse-line { display: flex; align-items: baseline; gap: 0.35rem; }
+.commentary-icon {
+  flex-shrink: 0;
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--maroon);
+  opacity: 0.65;
+  padding: 0.1rem;
+}
+.commentary-icon:hover { opacity: 1; }
+.verse-versions { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+.version-line { display: flex; align-items: baseline; gap: 0.4rem; }
+.version-tag {
+  font-size: 0.65rem;
+  font-weight: bold;
+  color: var(--maroon-dark);
+  background: var(--gold-bright);
+  border-radius: 3px;
+  padding: 0.05rem 0.35rem;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 0.3rem;
+}
+
+.version-attribution {
+  margin-top: 1.5rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--parchment-dark);
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.verse:first-child .version-line:first-child .verse-text::first-letter {
+  font-size: 2.6rem;
+  color: var(--maroon);
+  font-family: "Palatino Linotype", Georgia, serif;
+  float: left;
+  line-height: 0.85;
+  padding-right: 0.15rem;
+  padding-top: 0.1rem;
+}
+
+.verse-num {
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: #1e90ff;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.15);
+  opacity: 1;
+  flex-shrink: 0;
+  position: relative;
+  top: -0.35em;
+}
+.verse-num.has-notes {
+  color: var(--maroon);
+  opacity: 1;
+  font-weight: bold;
+  text-decoration: underline dotted var(--gold);
+  text-underline-offset: 2px;
+}
+
+.verse-text { color: var(--ink); }
+
+.chapter-label, .book-title-block h1 { cursor: var(--pen-cursor); }
+.chapter-label.has-notes, .book-title-block h1.has-notes {
+  text-decoration: underline dotted var(--gold);
+  text-underline-offset: 4px;
+}
+
+/* When notes are disabled in Settings, the pen cursor and dotted note
+   underlines go away and everything reverts to a plain reading cursor. */
+.notes-disabled .verse,
+.notes-disabled .chapter-label,
+.notes-disabled .book-title-block h1 {
+  cursor: default;
+}
+.notes-disabled .verse-num.has-notes,
+.notes-disabled .chapter-label.has-notes,
+.notes-disabled .book-title-block h1.has-notes {
+  text-decoration: none;
+}
+
+/* Interlinear */
+
+.interlinear-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0.5rem 0 0.2rem 2rem;
+  padding: 0.5rem;
+  background: rgba(168,128,42,0.08);
+  border-left: 3px solid var(--gold);
+  border-radius: 3px;
+}
+
+.word-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--highlight);
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  padding: 0.25rem 0.4rem;
+  cursor: pointer;
+  font-family: "Palatino Linotype", Georgia, serif;
+  min-width: 3.2rem;
+}
+.word-box:hover { background: #fff; box-shadow: 0 0 0 2px var(--gold-bright); }
+.word-box.no-click { cursor: default; }
+.word-box.no-click:hover { background: var(--highlight); box-shadow: none; }
+.word-box .orig { font-size: 1.05rem; color: var(--maroon); }
+.word-box .translit { font-size: 0.7rem; font-style: italic; color: var(--ink-soft); }
+.word-box .gloss { font-size: 0.65rem; color: var(--gold); }
+
+/* Places / archaeology panel */
+
+/* Maps gallery */
+
+.maps-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.8rem;
+}
+.map-card {
+  display: block;
+  text-decoration: none;
+  color: var(--ink);
+  background: var(--highlight);
+  border: 1px solid var(--gold);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.map-card:hover { box-shadow: 0 0 0 2px var(--gold-bright); }
+.map-card img {
+  width: 100%;
+  height: 130px;
+  object-fit: contain;
+  background: var(--parchment-dark);
+  display: block;
+}
+.map-card-info { padding: 0.5rem 0.6rem; }
+.map-era { font-size: 0.7rem; color: var(--maroon); font-weight: bold; text-transform: uppercase; letter-spacing: 0.03em; }
+.map-title { font-family: "Palatino Linotype", Georgia, serif; font-size: 1rem; color: var(--ink); margin: 0.15rem 0; }
+.map-desc { font-size: 0.8rem; color: var(--ink-soft); }
+
+/* Daily artifact ("Something cool") */
+
+.artifact-photo { display: block; margin-bottom: 0.8rem; text-align: center; }
+.artifact-photo img {
+  max-width: 100%;
+  max-height: 260px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+.artifact-verses { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.artifact-verse-link {
+  font-family: inherit;
+  border: 1px solid var(--gold-bright);
+  background: var(--gold);
+  color: var(--maroon-dark);
+  font-weight: bold;
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.artifact-verse-link:hover { background: var(--gold-bright); }
+
+.places-panel {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 2px dashed var(--border-ornate);
+}
+.places-panel h3 { color: var(--maroon); font-size: 1rem; margin-bottom: 0.5rem; }
+.places-panel ul { list-style: none; padding: 0; margin: 0; }
+.places-panel li { margin-bottom: 0.4rem; font-size: 0.9rem; }
+.places-panel a { color: var(--maroon); font-weight: bold; text-decoration: none; }
+.places-panel a:hover { text-decoration: underline; }
+.place-note { display: block; color: var(--ink-soft); font-size: 0.8rem; font-style: italic; }
+
+/* ---------- Modals ---------- */
+
+dialog {
+  border: 3px double var(--border-ornate);
+  border-radius: 6px;
+  max-width: 560px;
+  width: 92vw;
+  padding: 0;
+  background: var(--parchment);
+  color: var(--ink);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+dialog::backdrop { background: rgba(20,10,5,0.6); }
+
+.modal-header {
+  background: linear-gradient(var(--maroon), var(--maroon-dark));
+  color: var(--gold-bright);
+  padding: 0.6rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-header h2 { margin: 0; font-size: 1.1rem; }
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--gold-bright);
+  font-size: 1.3rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-body { padding: 1rem; max-height: 70vh; overflow-y: auto; }
+.modal-body h3 {
+  color: var(--maroon);
+  font-size: 1rem;
+  margin: 1rem 0 0.4rem;
+  border-bottom: 1px solid var(--gold);
+  padding-bottom: 0.2rem;
+}
+.modal-body h3:first-child { margin-top: 0; }
+
+.version-toggle-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin-bottom: 0.6rem;
+}
+.version-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* Study aid */
+
+.study-word-display { text-align: center; margin-bottom: 0.8rem; }
+.study-orig { font-size: 2.2rem; color: var(--maroon); display: block; font-family: "Palatino Linotype", Georgia, serif; }
+.study-translit { font-style: italic; color: var(--ink-soft); }
+.study-usage { text-align: center; font-size: 1rem; margin-bottom: 1rem; }
+
+.commentary-source + .commentary-source {
+  border-top: 2px dashed var(--border-ornate);
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+}
+
+.morpheme {
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  padding: 0.6rem;
+  margin-bottom: 0.6rem;
+  background: var(--highlight);
+}
+.morpheme-head { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.3rem; }
+.morpheme-word { font-size: 1.3rem; color: var(--maroon); font-family: "Palatino Linotype", Georgia, serif; }
+.morpheme-translit { font-style: italic; color: var(--ink-soft); }
+.morpheme-strong { margin-left: auto; font-size: 0.75rem; color: var(--gold); background: var(--maroon); padding: 0.05rem 0.4rem; border-radius: 3px; }
+.morpheme-gloss, .morpheme-gram { font-size: 0.9rem; margin: 0.2rem 0; }
+.gram-desc { color: var(--ink-soft); font-size: 0.85rem; }
+.lex-def { font-size: 0.85rem; margin-top: 0.4rem; }
+.lex-def summary { cursor: pointer; color: var(--maroon); font-weight: bold; }
+
+/* Notes */
+
+.notes-list { margin-bottom: 1rem; }
+.note-item { border: 1px solid var(--gold); border-radius: 4px; padding: 0.5rem; margin-bottom: 0.6rem; background: var(--highlight); }
+.note-item textarea, .note-new textarea {
+  width: 100%;
+  min-height: 4rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  border: 1px solid var(--parchment-dark);
+  border-radius: 3px;
+  padding: 0.4rem;
+  resize: vertical;
+}
+.note-actions { display: flex; gap: 0.4rem; margin-top: 0.4rem; }
+.note-actions button, .note-new button {
+  font-family: inherit;
+  border: 1px solid var(--gold);
+  background: var(--gold);
+  color: var(--maroon-dark);
+  font-weight: bold;
+  border-radius: 3px;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.note-actions button:hover, .note-new button:hover { background: var(--gold-bright); }
+.no-notes { font-style: italic; color: var(--ink-soft); }
+.note-new { border-top: 2px dashed var(--border-ornate); padding-top: 0.8rem; }
+
+/* Settings */
+
+.settings-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.8rem; }
+.settings-note { font-size: 0.85rem; color: var(--ink-soft); }
+.settings-note:empty { display: none; margin: 0; }
+.settings-divider { border: none; border-top: 2px dashed var(--border-ornate); margin: 1rem 0; }
+
+#youversionFields {
+  margin: -0.3rem 0 0.8rem 2.1rem; /* align under the checkbox label above */
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+#youversionFields label.settings-note { margin-top: 0.4rem; }
+#youversionFields input[type="text"] {
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--gold);
+  background: var(--highlight);
+  color: var(--ink);
+}
+#youversionFields.disabled-fields { opacity: 0.5; pointer-events: none; }
+#downloadAllBtn {
+  font-family: inherit;
+  border: 1px solid var(--gold);
+  background: var(--gold);
+  color: var(--maroon-dark);
+  font-weight: bold;
+  border-radius: 4px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+}
+#downloadAllBtn:hover { background: var(--gold-bright); }
+#downloadAllBtn:disabled { opacity: 0.6; cursor: wait; }
+#downloadProgress:empty { display: none; }
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 600px) {
+  main#content { margin: 0.6rem; padding: 1rem; }
+  .book-art { max-width: 140px; }
+  .book-art img { height: 88px; max-width: 140px; }
+  .book-art-placeholder { width: 88px; height: 88px; }
+  .book-title-block h1 { font-size: 1.9rem; }
+  .verses { font-size: 1.05rem; }
+  .interlinear-row { margin-left: 0.5rem; }
+}
+
+/* Desktop/PC: the app's primary target is mobile, but it's a full responsive web
+   app usable in any desktop browser too -- just a wider, more comfortable reading
+   column and roomier interlinear word grid on large viewports. */
+@media (min-width: 1000px) {
+  main#content { max-width: 900px; padding: 2rem 2.5rem 2.5rem; }
+  .controls-row { max-width: 900px; margin: 0 auto; }
+  .verses { font-size: 1.2rem; }
+  .word-box { min-width: 3.6rem; }
+}
+

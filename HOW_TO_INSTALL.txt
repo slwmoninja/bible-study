@@ -1,0 +1,118 @@
+INSTALLING AND USING YOUR BIBLE STUDY APP
+==========================================
+
+This app is a website, not something from an app store. Once it is hosted
+somewhere (GitHub Pages, Netlify, or even just run from your own PC -- see
+the PC section below), you visit it in your browser and add it to your
+home screen. No install step, no app-store account needed.
+
+If you have not hosted it anywhere yet, the fastest free option is GitHub
+Pages: push this folder to a GitHub repo and enable Pages for it in the
+repo's Settings. That gives you a web address like:
+
+    https://yourname.github.io/BibleStudy/
+
+Use that address in place of "the app's URL" below.
+
+
+1. IPHONE (SAFARI)
+-------------------
+1. Open the app's URL in Safari (it must be Safari, not Chrome, for this
+   step to work on iOS).
+2. Tap the Share button (the square with an arrow pointing up) in the
+   bottom toolbar.
+3. Scroll down and tap "Add to Home Screen".
+4. Give it a name if you like, then tap "Add".
+5. The app now has an icon on your home screen and opens full-screen,
+   like a regular app.
+
+To remove it: press and hold the icon, then choose "Remove App" /
+"Delete". This does not delete anything from the server -- reinstalling
+just re-adds the shortcut.
+
+Offline use: the first time you open the app, it saves itself and the
+core Bible text for offline reading. Open Settings (the icon in the top
+right) and turn on "Download entire Bible for offline use" while on
+Wi-Fi, so every book's Greek/Hebrew interlinear works without a
+connection.
+
+
+2. ANDROID (CHROME)
+--------------------
+1. Open the app's URL in Chrome.
+2. Tap the three-dot menu (top right).
+3. Tap "Add to Home screen". On some versions of Chrome this appears
+   automatically as an "Install app" banner or an icon in the address
+   bar -- tap that instead if you see it.
+4. Confirm the name and tap "Add" / "Install".
+5. The app icon appears on your home screen and app drawer, and opens in
+   its own window without Chrome's address bar.
+
+To uninstall: press and hold the icon and choose "Uninstall", the same
+as any other Android app.
+
+Offline use: same as iPhone -- open Settings and use "Download entire
+Bible for offline use" on Wi-Fi. Turn off "Only download data on Wi-Fi"
+in Settings if you are fine using cellular data for downloads instead.
+
+
+3. PC (WINDOWS / MAC / LINUX)
+------------------------------
+You have two options.
+
+Option A -- Use the hosted version (recommended):
+1. Open the app's URL in Chrome or Edge.
+2. Click the install icon in the address bar (a small monitor-with-arrow
+   icon on the right side of the address bar), or open the browser's
+   menu and choose "Install this site as an app".
+3. It opens in its own window from then on, with a shortcut in your
+   Start Menu, Applications folder, or Dock, like a native app.
+
+Option B -- Run it directly from this folder (no hosting needed):
+1. Double-click index.html in this folder to open it in your browser.
+   This works right away for reading, searching, and the Greek/Hebrew
+   interlinear.
+2. The "install as an app" step and full offline caching need the app
+   to be served over a real web address (http/https), not opened as a
+   plain file. For those, run a small local server instead:
+     - Open a command prompt / terminal in this folder.
+     - Run:  python -m http.server 8000
+     - Then visit http://localhost:8000 in your browser.
+3. From http://localhost:8000 you can install it as an app (see Option
+   A, step 2) and use the offline-download button in Settings.
+
+
+NOTES FOR ALL PLATFORMS
+------------------------
+- Bible versions: pick any combination of ASV, KJV, and YLT in Settings
+  -- each active version displays in parallel, verse by verse.
+
+- Greek/Hebrew interlinear: turn on separately for the New Testament
+  (Greek) and Old Testament (Hebrew) in Settings. Tap any original-
+  language word for its lexicon definition and grammar explanation.
+
+- Commentary: turn on Matthew Henry (1710) and/or Jamieson-Fausset-Brown
+  (1871) in Settings. A small horn icon appears next to verses that have
+  a note from an active commentary -- tap it to read.
+
+- Notes: hover or tap a verse, chapter title, or book title (look for
+  the feather-pen cursor) and double-click / double-tap to add a
+  personal note. Manage notes -- edit, delete, or move to a different
+  reference -- from the panel that opens.
+
+- Search: tap the magnifying-glass icon. It automatically detects Bible
+  references (like "John 3:16"), English words and phrases, Greek or
+  Hebrew words and phrases, and Strong's numbers (like "G2316").
+
+- Maps: tap the map icon for a gallery of historical maps of the
+  biblical world, from the time of the patriarchs through the early
+  church.
+
+- Archaeological Finds: tap the lightning-bolt icon for a different real
+  archaeological discovery each day, with a photo, a short description,
+  a link to its Wikipedia article, and the related Bible passages.
+
+- Everything you create (notes, settings, downloaded data) is stored
+  only on your own device -- nothing is sent to a server, except for the
+  optional live fetches of extra English translations and the linked
+  Wikimedia photos and map images.

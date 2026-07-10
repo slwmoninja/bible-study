@@ -1,0 +1,182 @@
+{
+  "ane": {
+    "era": "Patriarchal Era (Genesis)",
+    "title": "The Ancient Near East",
+    "description": "The world of Abraham, Isaac, and Jacob: Mesopotamia, the Fertile Crescent, and Canaan.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Near_East_ancient_map.jpg/330px-Near_East_ancient_map.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ANear_East_ancient_map.jpg",
+    "commonsFile": "File:Near East ancient map.jpg",
+    "license": "Public domain"
+  },
+  "egypt": {
+    "era": "Intertestamental/Exodus Backdrop",
+    "title": "Ancient Egypt",
+    "description": "The great civilization along the Nile that enslaved and then released Israel, and later gave refuge to the infant Jesus.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Ancient_Egypt_map_pl.svg/330px-Ancient_Egypt_map_pl.svg.png",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AAncient_Egypt_map_pl.svg",
+    "commonsFile": "File:Ancient Egypt map pl.svg",
+    "license": "CC BY 2.5"
+  },
+  "exodus": {
+    "era": "Exodus (Exodus – Deuteronomy)",
+    "title": "Route of the Exodus",
+    "description": "Israel's traditional route from Egypt through the Sinai wilderness to the plains of Moab.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Exodus_Map.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AExodus_Map.jpg",
+    "commonsFile": "File:Exodus Map.jpg",
+    "license": "CC BY 2.5"
+  },
+  "canaan": {
+    "era": "Conquest & Judges (Joshua – Judges)",
+    "title": "Canaan Divided Among the Tribes",
+    "description": "The allotment of the land among the twelve tribes of Israel after the conquest.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/General_map_of_Canaan_%28FL45582600_3922575%29.jpg/330px-General_map_of_Canaan_%28FL45582600_3922575%29.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AGeneral_map_of_Canaan_%28FL45582600_3922575%29.jpg",
+    "commonsFile": "File:General map of Canaan (FL45582600 3922575).jpg",
+    "license": "Public domain"
+  },
+  "monarchy": {
+    "era": "United Monarchy (1–2 Samuel, 1 Kings)",
+    "title": "The Kingdom of David and Solomon",
+    "description": "Israel at its greatest territorial extent under the united monarchy.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/MACCOUN%281899%29_p095_ABOUT_975_TO_930_B.C._-_KINGDOM_OF_DAVID_AND_SOLOMON.jpg/330px-MACCOUN%281899%29_p095_ABOUT_975_TO_930_B.C._-_KINGDOM_OF_DAVID_AND_SOLOMON.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AMACCOUN%281899%29_p095_ABOUT_975_TO_930_B.C._-_KINGDOM_OF_DAVID_AND_SOLOMON.jpg",
+    "commonsFile": "File:MACCOUN(1899) p095 ABOUT 975 TO 930 B.C. - KINGDOM OF DAVID AND SOLOMON.jpg",
+    "license": "Public domain"
+  },
+  "empires": {
+    "era": "Divided Kingdom & Exile (1–2 Kings, Isaiah, Jeremiah)",
+    "title": "The Assyrian & Babylonian Empires",
+    "description": "The great empires that conquered Israel (722 BC) and Judah (586 BC) and carried them into exile.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Map_of_eastern_Turkey_in_Asia%2C_Syria_and_western_Persia_the_period_of_the_Babylonian_and_Assyrian_empires_%281915%29.jpg/330px-Map_of_eastern_Turkey_in_Asia%2C_Syria_and_western_Persia_the_period_of_the_Babylonian_and_Assyrian_empires_%281915%29.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AMap_of_eastern_Turkey_in_Asia%2C_Syria_and_western_Persia_the_period_of_the_Babylonian_and_Assyrian_empires_%281915%29.jpg",
+    "commonsFile": "File:Map of eastern Turkey in Asia, Syria and western Persia the period of the Babylonian and Assyrian empires (1915).jpg",
+    "license": "Public domain"
+  },
+  "neo_babylon": {
+    "era": "Divided Kingdom & Exile (1–2 Kings, Daniel)",
+    "title": "The Neo-Babylonian Empire under Nebuchadnezzar II",
+    "description": "The empire of Nebuchadnezzar II, who destroyed Jerusalem and its Temple and carried Judah into exile.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Neo-Babylonian_Empire_under_Nebuchadnezzar_II.png/330px-Neo-Babylonian_Empire_under_Nebuchadnezzar_II.png",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ANeo-Babylonian_Empire_under_Nebuchadnezzar_II.png",
+    "commonsFile": "File:Neo-Babylonian Empire under Nebuchadnezzar II.png",
+    "license": "CC BY-SA 4.0"
+  },
+  "israel_ancient": {
+    "era": "Divided Kingdom & Exile (1–2 Kings, Isaiah, Jeremiah)",
+    "title": "The Divided Kingdom",
+    "description": "The northern Kingdom of Israel and southern Kingdom of Judah as separate states, c. 830 BC.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Kingdoms_of_Israel_and_Judah_map_830.svg/330px-Kingdoms_of_Israel_and_Judah_map_830.svg.png",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AKingdoms_of_Israel_and_Judah_map_830.svg",
+    "commonsFile": "File:Kingdoms of Israel and Judah map 830.svg",
+    "license": "CC BY-SA 3.0"
+  },
+  "persia": {
+    "era": "Persian Period (Ezra, Nehemiah, Esther)",
+    "title": "The Persian (Achaemenid) Empire",
+    "description": "The empire that ended the exile and under which Judah was restored as a province.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Achaemenid_Empire_%28flat_map%29.svg/330px-Achaemenid_Empire_%28flat_map%29.svg.png",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AAchaemenid_Empire_%28flat_map%29.svg",
+    "commonsFile": "File:Achaemenid Empire (flat map).svg",
+    "license": "CC BY-SA 4.0"
+  },
+  "hellenistic": {
+    "era": "Intertestamental Period",
+    "title": "The Empire of Alexander the Great",
+    "description": "The Hellenistic world that shaped the political and cultural backdrop of the intertestamental centuries.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Map_of_the_Empire_of_Alexander_the_Great_%281893%29.jpg/330px-Map_of_the_Empire_of_Alexander_the_Great_%281893%29.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AMap_of_the_Empire_of_Alexander_the_Great_%281893%29.jpg",
+    "commonsFile": "File:Map of the Empire of Alexander the Great (1893).jpg",
+    "license": "Public domain"
+  },
+  "hellenistic_diadochi": {
+    "era": "Intertestamental Period",
+    "title": "The Successor Kingdoms (Diadochi)",
+    "description": "The rival Greek kingdoms — including Ptolemaic Egypt and the Seleucid Empire — that divided Alexander's empire and clashed over Judea for two centuries.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Diadocs281.png/330px-Diadocs281.png",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ADiadocs281.png",
+    "commonsFile": "File:Diadocs281.png",
+    "license": "CC BY-SA 4.0"
+  },
+  "parthia": {
+    "era": "Acts (Pentecost)",
+    "title": "The Parthian Empire",
+    "description": "Rome's great eastern rival, home to some of the \"Parthians and Medes\" present at Pentecost.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Parthian_Empire.png/330px-Parthian_Empire.png",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AParthian_Empire.png",
+    "commonsFile": "File:Parthian Empire.png",
+    "license": "CC BY-SA 4.0"
+  },
+  "rome_trajan": {
+    "era": "New Testament / Early Church",
+    "title": "The Roman Empire at Its Height (AD 117)",
+    "description": "The empire at its greatest territorial extent under Trajan, encompassing the entire New Testament world.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Roman_Empire_Trajan_117AD.svg/330px-Roman_Empire_Trajan_117AD.svg.png",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3ARoman_Empire_Trajan_117AD.svg",
+    "commonsFile": "File:Roman Empire Trajan 117AD.svg",
+    "license": "CC BY-SA 3.0"
+  },
+  "roman_judea": {
+    "era": "New Testament Setting",
+    "title": "The Roman Province of Judaea",
+    "description": "The Roman administrative world of the Gospels: Judea, Samaria, and Galilee under Rome.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Judaea_Roman_Province.svg/330px-Judaea_Roman_Province.svg.png",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AJudaea_Roman_Province.svg",
+    "commonsFile": "File:Judaea Roman Province.svg",
+    "license": "CC BY-SA 4.0"
+  },
+  "christ_time": {
+    "era": "Gospels",
+    "title": "The Herodian Kingdom (Gospels Era)",
+    "description": "Galilee, Samaria, and Judea as the setting for Jesus's ministry.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Herodian_Kingdom_political_map.svg/330px-Herodian_Kingdom_political_map.svg.png",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AHerodian_Kingdom_political_map.svg",
+    "commonsFile": "File:Herodian Kingdom political map.svg",
+    "license": "CC BY-SA 4.0"
+  },
+  "paul1": {
+    "era": "Acts – Paul's Journeys",
+    "title": "Paul's First Missionary Journey",
+    "description": "Cyprus and southern Asia Minor (Acts 13–14).",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Paul_the_Apostle%2C_first_missionary_journey.svg/330px-Paul_the_Apostle%2C_first_missionary_journey.svg.png",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3APaul_the_Apostle%2C_first_missionary_journey.svg",
+    "commonsFile": "File:Paul the Apostle, first missionary journey.svg",
+    "license": "Public domain"
+  },
+  "paul2": {
+    "era": "Acts – Paul's Journeys",
+    "title": "Paul's Second Missionary Journey",
+    "description": "From Asia Minor into Macedonia and Greece (Acts 15:36–18:22).",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Paul_the_Apostle%2C_second_missionary_journey.svg/330px-Paul_the_Apostle%2C_second_missionary_journey.svg.png",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3APaul_the_Apostle%2C_second_missionary_journey.svg",
+    "commonsFile": "File:Paul the Apostle, second missionary journey.svg",
+    "license": "Public domain"
+  },
+  "paul3": {
+    "era": "Acts – Paul's Journeys",
+    "title": "Paul's Third Missionary Journey",
+    "description": "Through Asia Minor and Greece again, ending toward Jerusalem and Rome (Acts 18:23–21:16).",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Paul_the_Apostle%2C_third_missionary_journey.svg/330px-Paul_the_Apostle%2C_third_missionary_journey.svg.png",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3APaul_the_Apostle%2C_third_missionary_journey.svg",
+    "commonsFile": "File:Paul the Apostle, third missionary journey.svg",
+    "license": "Public domain"
+  },
+  "rome_divided": {
+    "era": "Post-New Testament (up to c. AD 400)",
+    "title": "The Roman Empire Divided (AD 395)",
+    "description": "The empire split into Western and Eastern halves a generation after Constantine legalized Christianity — the world the early Church entered as it grew across the empire.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Partition_of_the_Roman_Empire_in_395_AD.png/330px-Partition_of_the_Roman_Empire_in_395_AD.png",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3APartition_of_the_Roman_Empire_in_395_AD.png",
+    "commonsFile": "File:Partition of the Roman Empire in 395 AD.png",
+    "license": "Public domain"
+  },
+  "israel_modern": {
+    "era": "Modern Day",
+    "title": "Modern State of Israel",
+    "description": "A contemporary relief map of the modern State of Israel.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Israel_relief_location_map.svg/330px-Israel_relief_location_map.svg.png",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AIsrael_relief_location_map.svg",
+    "commonsFile": "File:Israel relief location map.svg",
+    "license": "CC BY-SA 4.0"
+  }
+}

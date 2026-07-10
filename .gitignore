@@ -1,0 +1,14 @@
+# Raw source dumps used only by the one-time ETL scripts in scripts/*.py --
+# not read by the app at runtime (it only loads data/processed/*.js).
+# Re-download/regenerate via the scripts if ever needed; keeping these out of
+# the repo saves ~218MB.
+data/raw/
+
+# Python bytecode cache
+scripts/__pycache__/
+__pycache__/
+*.pyc
+
+# OS junk
+.DS_Store
+Thumbs.db

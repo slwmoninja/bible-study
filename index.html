@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Your Bible Study App</title>
+<meta name="description" content="Bible study app with original Greek/Hebrew interlinear, classic commentaries, personal notes, multilingual search, and archaeology links.">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6b1f2a">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <button id="settingsBtn" class="icon-btn settings-icon-btn" title="Settings" aria-label="Settings">
+    <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <circle cx="12" cy="12" r="2.4" fill="none" stroke="currentColor" stroke-width="1.3"/>
+      <line x1="12" y1="3" x2="12" y2="6.2" stroke="currentColor" stroke-width="1.3"/>
+      <line x1="12" y1="17.8" x2="12" y2="21" stroke="currentColor" stroke-width="1.3"/>
+      <line x1="3" y1="12" x2="6.2" y2="12" stroke="currentColor" stroke-width="1.3"/>
+      <line x1="17.8" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="1.3"/>
+      <line x1="18.5" y1="17" x2="20.5" y2="19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+  </button>
+  <div class="topbar-title">
+    <span class="title-main">Your Bible Study App</span>
+    <span class="title-sub">Note Taking, Maps, Amazing Finds, Commentaries, Hebrew/Greek</span>
+  </div>
+  <div class="controls-row">
+    <select id="bookSelect" title="Book"></select>
+    <select id="chapterSelect" title="Chapter"></select>
+    <select id="verseSelect" title="Verse"></select>
+    <select id="quickVersionSelect" title="Bible version"></select>
+    <button id="mapsIconBtn" class="icon-btn" title="Maps of the Biblical World" aria-label="Maps of the Biblical World">
+      <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">
+        <path d="M2,5.5 L8,3.5 L15,5.5 L21,3.5 L21,18.5 L15,20.5 L8,18.5 L2,20.5 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+        <line x1="8" y1="3.5" x2="8" y2="18.5" stroke="currentColor" stroke-width="1" stroke-dasharray="1.5,1.5"/>
+        <line x1="15" y1="5.5" x2="15" y2="20.5" stroke="currentColor" stroke-width="1" stroke-dasharray="1.5,1.5"/>
+        <path d="M11.2,8.2 c1.6,0 2.6,1.7 1.6,3.1 l-1.6,2.1 l-1.6,-2.1 c-1,-1.4 0,-3.1 1.6,-3.1 Z" fill="currentColor"/>
+      </svg>
+    </button>
+    <button id="coolIconBtn" class="icon-btn" title="Show me something cool" aria-label="Show me something cool">
+      <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">
+        <path d="M13,2 L4.5,13.5 L10.5,13.5 L9,22 L19.5,9.5 L13,9.5 Z" fill="currentColor" stroke="currentColor" stroke-width="0.5" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <button id="searchIconBtn" class="icon-btn" title="Search" aria-label="Search">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+        <circle cx="10" cy="10" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <line x1="14.6" y1="14.6" x2="21" y2="21" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main id="content"></main>
+
+<dialog id="studyModal">
+  <div class="modal-header">
+    <h2>Word Study</h2>
+    <button class="close-btn" aria-label="Close">&times;</button>
+  </div>
+  <div class="modal-body" id="studyModalBody"></div>
+</dialog>
+
+<dialog id="artifactModal">
+  <div class="modal-header">
+    <h2>Archaeological Finds</h2>
+    <button class="close-btn" aria-label="Close">&times;</button>
+  </div>
+  <div class="modal-body" id="artifactModalBody"></div>
+</dialog>
+
+<dialog id="mapsModal">
+  <div class="modal-header">
+    <h2>Maps of the Biblical World</h2>
+    <button class="close-btn" aria-label="Close">&times;</button>
+  </div>
+  <div class="modal-body">
+    <div class="maps-gallery" id="mapsGallery"></div>
+  </div>
+</dialog>
+
+<dialog id="searchModal">
+  <div class="modal-header">
+    <h2>Search</h2>
+    <button class="close-btn" aria-label="Close">&times;</button>
+  </div>
+  <div class="modal-body">
+    <div class="search-popup-row">
+      <input type="text" id="searchInput" placeholder="Search words, phrases, refs, or Greek/Hebrew&hellip;">
+      <button id="searchBtn">Search</button>
+    </div>
+    <div id="searchResults"></div>
+  </div>
+</dialog>
+
+<dialog id="commentaryModal">
+  <div class="modal-header">
+    <h2 id="commentaryModalTitle">Commentary</h2>
+    <button class="close-btn" aria-label="Close">&times;</button>
+  </div>
+  <div class="modal-body" id="commentaryModalBody"></div>
+</dialog>
+
+<dialog id="notesModal">
+  <div class="modal-header">
+    <h2>Notes</h2>
+    <button class="close-btn" aria-label="Close">&times;</button>
+  </div>
+  <div class="modal-body" id="notesModalBody"></div>
+</dialog>
+
+<dialog id="settingsModal">
+  <div class="modal-header">
+    <h2>Settings</h2>
+    <button class="close-btn" aria-label="Close">&times;</button>
+  </div>
+  <div class="modal-body">
+
+    <h3>Bible versions</h3>
+    <div class="settings-row">
+      <input type="checkbox" id="youversionToggle">
+      <label for="youversionToggle">YouVersion (primary version -- requires a free API key)</label>
+    </div>
+    <div id="youversionFields">
+      <label class="settings-note" for="youversionApiKeyInput">API key (App Key) from <a href="https://platform.youversion.com" target="_blank" rel="noopener">platform.youversion.com</a></label>
+      <input type="text" id="youversionApiKeyInput" placeholder="Paste your App Key" autocomplete="off">
+      <label class="settings-note" for="youversionBibleIdInput">Bible ID (default 111 = NIV; other IDs are the number in a bible.com reading-plan URL)</label>
+      <input type="text" id="youversionBibleIdInput" placeholder="111">
+    </div>
+
+    <div class="version-toggle-group" id="versionTogglesLocal"></div>
+
+    <hr class="settings-divider">
+
+    <h3>Original languages</h3>
+    <div class="settings-row">
+      <input type="checkbox" id="showGreekToggle">
+      <label for="showGreekToggle">Greek interlinear (New Testament)</label>
+    </div>
+    <div class="settings-row">
+      <input type="checkbox" id="showHebrewToggle">
+      <label for="showHebrewToggle">Hebrew interlinear (Old Testament)</label>
+    </div>
+
+    <hr class="settings-divider">
+
+    <h3>Commentary</h3>
+    <div class="version-toggle-group" id="commentaryToggles"></div>
+
+    <hr class="settings-divider">
+
+    <h3>Study &amp; reading resources</h3>
+    <div class="settings-row">
+      <input type="checkbox" id="showStudyAidsToggle">
+      <label for="showStudyAidsToggle">Word study popovers (click a word for lexicon &amp; grammar)</label>
+    </div>
+    <div class="settings-row">
+      <input type="checkbox" id="showTranslitToggle">
+      <label for="showTranslitToggle">Transliteration under interlinear words</label>
+    </div>
+    <div class="settings-row">
+      <input type="checkbox" id="showWordGlossToggle">
+      <label for="showWordGlossToggle">Word-by-word English gloss under interlinear words</label>
+    </div>
+    <div class="settings-row">
+      <input type="checkbox" id="showArchaeologyToggle">
+      <label for="showArchaeologyToggle">Archaeology &amp; historical photo links</label>
+    </div>
+    <div class="settings-row">
+      <input type="checkbox" id="showNotesToggle">
+      <label for="showNotesToggle">Personal notes (pen cursor, double-click/double-tap to add)</label>
+    </div>
+    <div class="settings-row">
+      <input type="checkbox" id="showBookArtToggle">
+      <label for="showBookArtToggle">Book header illustrations</label>
+    </div>
+
+    <hr class="settings-divider">
+
+    <h3>Network</h3>
+    <div class="settings-row">
+      <input type="checkbox" id="wifiOnlyToggle">
+      <label for="wifiOnlyToggle">Only download data on Wi-Fi</label>
+    </div>
+    <p id="wifiDetectNote" class="settings-note"></p>
+
+    <button id="downloadAllBtn">Download entire Bible for offline use</button>
+    <p id="downloadProgress" class="settings-note"></p>
+  </div>
+</dialog>
+
+<script src="data/book_meta.js"></script>
+<script src="data/book_art.js"></script>
+<script src="data/places.js"></script>
+<script src="data/maps.js"></script>
+<script src="data/artifacts.js"></script>
+<script src="js/network.js"></script>
+<script src="js/loader.js"></script>
+<script src="js/online.js"></script>
+<script src="js/youversion.js"></script>
+<script src="js/notes.js"></script>
+<script src="js/app.js"></script>
+<script>
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+    navigator.serviceWorker.register("service-worker.js").catch(() => {});
+  }
+</script>
+</body>
+</html>

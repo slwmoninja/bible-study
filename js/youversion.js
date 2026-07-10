@@ -4,12 +4,17 @@
 // (signing up is a login/account step this app can't do on the user's
 // behalf). Nothing is fetched until a key is present.
 //
-// Endpoint/header confirmed against the real API during integration (base
-// URL, auth header name, passages endpoint, format=text param) via YouVersion's
-// own developer docs and a third-party integration write-up. What is NOT
-// independently verified is the exact inline verse-numbering format inside a
-// whole-chapter `format=text` response body (no full-chapter sample was
-// available) -- see parseChapterText() below for how that's handled safely.
+// Endpoint/header/format confirmed against a real API response during
+// integration (base URL, auth header name, passages endpoint, and the
+// format=html verse-marker structure below) -- fetched live via the browser
+// console using the user's own key, since this app has no server to log
+// requests through. Every verse (not just the first in a paragraph) is
+// preceded by an empty marker span: `<span class="yv-v" v="3"></span>`. A
+// separate `<span class="yv-vlbl">3</span>` ("visible label") duplicates the
+// number only at each paragraph's first verse -- that's the reading-view
+// convention for where a number is shown on screen, but it's redundant with
+// `yv-v`'s `v` attribute, which is present on every single verse, so it's
+// discarded rather than relied on.
 //
 // Per the "reasonable defaults, live fetch, don't bulk-cache copyrighted
 // text offline" choice made when wiring this in: results are cached
@@ -25,30 +30,40 @@ const YouVersionBible = (() => {
     return { apiKey: s.youversionApiKey || "", bibleId: s.youversionBibleId || "111" };
   }
 
-  // Best-effort split of a whole-chapter text blob into per-verse text, based
-  // on the near-universal plain-text Bible convention of an inline verse
-  // number immediately followed by the verse's (capitalized) first word.
-  // UNVERIFIED against a real response -- if the split doesn't produce a
-  // plausible increasing sequence of verse numbers, we fall back to the
-  // complete, correctly-ordered chapter text as a single unnumbered verse 1,
-  // rather than risk showing mis-split/scrambled text under wrong numbers.
-  function parseChapterText(content) {
-    const marker = /(?:^|\s)(\d{1,3})\s+(?=[A-ZÀ-ÖØ-Þ"“'])/g;
-    const matches = [...content.matchAll(marker)];
-    if (matches.length >= 2) {
-      const verses = {};
-      for (let i = 0; i < matches.length; i++) {
-        const num = matches[i][1];
-        const start = matches[i].index + matches[i][0].length;
-        const end = i + 1 < matches.length ? matches[i + 1].index : content.length;
-        const text = content.slice(start, end).trim();
-        if (text) verses[num] = text;
-      }
-      const nums = Object.keys(verses).map(Number).sort((a, b) => a - b);
-      const plausible = nums.length >= 2 && nums[0] <= 2 && nums.every((n, i) => i === 0 || n > nums[i - 1]);
-      if (plausible) return verses;
+  function stripTags(fragment) {
+    return fragment
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#0?39;/g, "'")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  // Splits a whole-chapter `format=html` response into per-verse text using
+  // the real yv-v marker spans (see file header). Falls back to the whole
+  // chapter as a single unnumbered verse 1 only if no markers are found at
+  // all (e.g. an unexpected response shape), so a parsing surprise never
+  // produces scrambled/mis-numbered text -- just an unsplit block.
+  function parseChapterHtml(html) {
+    if (!html) return { "1": "" };
+    const withoutLabels = html.replace(/<span class="yv-vlbl">\d*<\/span>/g, "");
+    const marker = /<span class="yv-v" v="([\w-]+)"\s*>\s*<\/span>/g;
+    const matches = [...withoutLabels.matchAll(marker)];
+    if (!matches.length) return { "1": stripTags(withoutLabels) };
+
+    const verses = {};
+    for (let i = 0; i < matches.length; i++) {
+      const num = matches[i][1];
+      const start = matches[i].index + matches[i][0].length;
+      const end = i + 1 < matches.length ? matches[i + 1].index : withoutLabels.length;
+      const text = stripTags(withoutLabels.slice(start, end));
+      if (text) verses[num] = text;
     }
-    return { "1": content.trim() };
+    return Object.keys(verses).length ? verses : { "1": stripTags(withoutLabels) };
   }
 
   // bookAbbr must be this app's BOOK_META abbreviation (e.g. "Gen", "1Co",
@@ -68,11 +83,11 @@ const YouVersionBible = (() => {
     }
 
     const ref = `${bookAbbr.toUpperCase()}.${chapter}`;
-    const url = `${API_BASE}/bibles/${encodeURIComponent(bibleId)}/passages/${encodeURIComponent(ref)}?format=text`;
+    const url = `${API_BASE}/bibles/${encodeURIComponent(bibleId)}/passages/${encodeURIComponent(ref)}?format=html&include_headings=false&include_notes=false`;
     const res = await fetch(url, { headers: { "X-YVP-App-Key": apiKey } });
     if (!res.ok) throw new Error(`YouVersion fetch failed: ${res.status}`);
     const data = await res.json();
-    const verses = parseChapterText(data.content || "");
+    const verses = parseChapterHtml(data.content || "");
     cache.set(key, verses);
     return verses;
   }

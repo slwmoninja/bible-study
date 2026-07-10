@@ -266,34 +266,17 @@ function populateQuickVersionSelect() {
   const sel = document.getElementById("quickVersionSelect");
   sel.innerHTML = "";
 
-  const primaryGroup = document.createElement("optgroup");
-  primaryGroup.label = "Primary";
-  const yvOpt = document.createElement("option");
-  yvOpt.value = YOUVERSION_ID;
-  yvOpt.textContent = versionTagLabel(YOUVERSION_ID);
-  primaryGroup.appendChild(yvOpt);
-  sel.appendChild(primaryGroup);
-
-  const localGroup = document.createElement("optgroup");
-  localGroup.label = "Offline";
-  for (const id of LOCAL_VERSION_IDS) {
+  const addOption = (id, label) => {
     const opt = document.createElement("option");
     opt.value = id;
-    opt.textContent = id;
-    localGroup.appendChild(opt);
-  }
-  sel.appendChild(localGroup);
+    opt.textContent = label;
+    sel.appendChild(opt);
+  };
 
+  addOption(YOUVERSION_ID, versionTagLabel(YOUVERSION_ID));
+  for (const id of LOCAL_VERSION_IDS) addOption(id, id);
   if (state.settings.onlineEnabled) {
-    const onlineGroup = document.createElement("optgroup");
-    onlineGroup.label = "Online";
-    for (const [id, name] of Object.entries(OnlineBible.ONLINE_VERSIONS)) {
-      const opt = document.createElement("option");
-      opt.value = id;
-      opt.textContent = name;
-      onlineGroup.appendChild(opt);
-    }
-    sel.appendChild(onlineGroup);
+    for (const [id, name] of Object.entries(OnlineBible.ONLINE_VERSIONS)) addOption(id, name);
   }
   syncQuickVersionSelect();
 }

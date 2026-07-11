@@ -1,6 +1,10 @@
 // Personal study notes, attached to a book, a book+chapter, or a specific book+chapter+verse.
 // Persisted locally in the browser (localStorage) -- nothing leaves the device.
 const Notes = (() => {
+  // Never rename/change this: localStorage persists independently of app
+  // deployments and service-worker cache updates (see service-worker.js,
+  // which only ever touches Cache Storage), so a user's existing notes
+  // survive updates automatically as long as this key stays stable.
   const KEY = "bibleAppNotes";
 
   function loadAll() {

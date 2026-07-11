@@ -384,6 +384,7 @@ async function renderChapter() {
       </div>`;
     populateVerseSelect([]);
     pendingHighlight = null;
+    if (state.settings.showNotes) attachNoteIconHandlers();
     return;
   }
 
@@ -441,6 +442,7 @@ async function renderChapter() {
         <div class="verse-line">
           <span class="verse-num${hasNotes && state.settings.showNotes ? " has-notes" : ""}">${vn}</span>
           <div class="verse-versions">${versionLines}</div>
+          ${noteIconHtml(state.book, state.chapter, vn)}
           ${commentaryHtml}
         </div>
         ${interlinearHtml}
@@ -467,6 +469,8 @@ async function renderChapter() {
   if (state.settings.showNotes) {
     markChapterAndBookNoteIndicators();
     attachNoteDblClickHandlers();
+    attachNoteIconHandlers();
+    attachNoteDropHandlers();
   }
   attachWordHandlers();
   attachCommentaryHandlers();
@@ -603,8 +607,14 @@ function renderBookHeader(meta, chapter, versionIds) {
   return `<header class="book-header">
       ${artHtml}
       <div class="book-title-block">
-        <h1>${escapeHtml(meta.n)}</h1>
-        <div class="chapter-label">Chapter ${chapter}</div>
+        <div class="book-title-row">
+          <h1>${escapeHtml(meta.n)}</h1>
+          ${noteIconHtml(meta.a, null, null)}
+        </div>
+        <div class="chapter-row">
+          <div class="chapter-label">Chapter ${chapter}</div>
+          ${noteIconHtml(meta.a, chapter, null)}
+        </div>
       </div>
       ${attributionHtml}
     </header>`;
@@ -686,21 +696,89 @@ function showStudyAid(word, testament) {
 
 // ---------- Notes ----------
 
+// Small clickable indicator shown next to a book title, chapter label, or
+// verse number whenever notes already exist there -- a single click opens
+// the notes panel for that exact reference (view/edit/delete), separate from
+// the double-click-anywhere gesture used to add a first note.
+function noteIconHtml(book, chapter, verse) {
+  if (!state.settings.showNotes || !Notes.hasNotes(book, chapter, verse)) return "";
+  return `<button class="note-icon" data-book="${book}"${chapter ? ` data-chapter="${chapter}"` : ""}${verse ? ` data-verse="${verse}"` : ""} title="View/edit notes">
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+        <path d="M5,3.5 L15,3.5 L19,7.5 L19,20.5 L5,20.5 Z" fill="#e8c25a" stroke="#000" stroke-width="1.1" stroke-linejoin="round"/>
+        <path d="M15,3.5 L15,7.5 L19,7.5 Z" fill="#fff8e6" stroke="#000" stroke-width="1" stroke-linejoin="round"/>
+        <line x1="7.5" y1="11" x2="16.5" y2="11" stroke="#000" stroke-width="1" stroke-linecap="round"/>
+        <line x1="7.5" y1="14.5" x2="16.5" y2="14.5" stroke="#000" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+    </button>`;
+}
+
+function attachNoteIconHandlers() {
+  document.querySelectorAll(".note-icon").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation(); // clicking the icon shouldn't also trigger the parent's dblclick-to-add gesture
+      showNotesPanel(btn.dataset.book, btn.dataset.chapter || null, btn.dataset.verse || null);
+    });
+  });
+}
+
+// Lets an in-progress drag from a draggable .note-item (see showNotesPanel)
+// be dropped onto a verse, the chapter label, or the book title to relocate
+// the note there -- an alternative to the "Move..." button for mouse users.
+// Kept alongside that button (not a replacement) since native HTML5 drag/drop
+// has no touch-device equivalent, and this app is primarily used on phones.
+function attachNoteDropHandlers() {
+  function makeDropTarget(el, book, chapter, verse) {
+    el.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      el.classList.add("note-drop-hover");
+    });
+    el.addEventListener("dragleave", () => el.classList.remove("note-drop-hover"));
+    el.addEventListener("drop", (e) => {
+      e.preventDefault();
+      el.classList.remove("note-drop-hover");
+      let data;
+      try { data = JSON.parse(e.dataTransfer.getData("application/json")); } catch { return; }
+      if (!data || !data.id) return;
+      const moved = Notes.move(data.book, data.chapter || null, data.verse || null, data.id, book, chapter, verse);
+      if (moved) {
+        renderChapter();
+        const panel = document.getElementById("notesModal");
+        if (panel.open) showNotesPanel(book, chapter, verse);
+      }
+    });
+  }
+
+  document.querySelectorAll(".verse").forEach((el) => {
+    makeDropTarget(el, el.dataset.book, el.dataset.chapter, el.dataset.verse);
+  });
+  const chapterLabel = document.querySelector(".chapter-label");
+  if (chapterLabel) makeDropTarget(chapterLabel, state.book, state.chapter, null);
+  const bookTitle = document.querySelector(".book-title-block h1");
+  if (bookTitle) makeDropTarget(bookTitle, state.book, null, null);
+}
+
 function attachNoteDblClickHandlers() {
   document.querySelectorAll(".verse").forEach((el) => {
     el.addEventListener("dblclick", (e) => {
-      if (e.target.closest(".interlinear-row") || e.target.closest(".commentary-icon")) return; // let those clicks be, don't also open notes
+      if (e.target.closest(".interlinear-row") || e.target.closest(".commentary-icon") || e.target.closest(".note-icon")) return; // let those clicks be, don't also open notes
       const { book, chapter, verse } = el.dataset;
       showNotesPanel(book, chapter, verse);
     });
   });
   const chapterLabel = document.querySelector(".chapter-label");
   if (chapterLabel) {
-    chapterLabel.addEventListener("dblclick", () => showNotesPanel(state.book, state.chapter, null));
+    chapterLabel.addEventListener("dblclick", (e) => {
+      if (e.target.closest(".note-icon")) return;
+      showNotesPanel(state.book, state.chapter, null);
+    });
   }
   const bookTitle = document.querySelector(".book-title-block h1");
   if (bookTitle) {
-    bookTitle.addEventListener("dblclick", () => showNotesPanel(state.book, null, null));
+    bookTitle.addEventListener("dblclick", (e) => {
+      if (e.target.closest(".note-icon")) return;
+      showNotesPanel(state.book, null, null);
+    });
   }
 }
 
@@ -722,7 +800,7 @@ function showNotesPanel(book, chapter, verse) {
       <h3>${escapeHtml(refLabel(book, chapter, verse))}</h3>
       <div class="notes-list">
         ${notes.map((n) => `
-          <div class="note-item" data-id="${n.id}">
+          <div class="note-item" data-id="${n.id}" draggable="true" title="Drag onto a verse, chapter, or book title to move this note there">
             <textarea class="note-text">${escapeHtml(n.text)}</textarea>
             <div class="note-actions">
               <button class="note-save">Save</button>
@@ -738,6 +816,12 @@ function showNotesPanel(book, chapter, verse) {
 
     body.querySelectorAll(".note-item").forEach((item) => {
       const id = item.dataset.id;
+      item.addEventListener("dragstart", (e) => {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("application/json", JSON.stringify({ book, chapter, verse, id }));
+        item.classList.add("dragging");
+      });
+      item.addEventListener("dragend", () => item.classList.remove("dragging"));
       item.querySelector(".note-save").addEventListener("click", () => {
         const text = item.querySelector(".note-text").value.trim();
         if (text) Notes.update(book, chapter, verse, id, text);
@@ -772,7 +856,10 @@ function showNotesPanel(book, chapter, verse) {
   }
 
   render();
-  openModal(modal);
+  // Non-modal (like the search panel): a modal dialog makes the rest of the
+  // page inert, which would block dropping a dragged note onto a verse,
+  // chapter label, or book title behind this panel.
+  openNonModal(modal);
 }
 
 function parseSimpleRef(input) {
@@ -781,6 +868,130 @@ function parseSimpleRef(input) {
   const book = findBookByName(m[1]);
   if (!book) return null;
   return { book: book.a, chapter: m[2] || null, verse: m[3] || null };
+}
+
+// ---------- Notepad ----------
+// A general, free-form personal notepad -- separate from the per-verse study
+// notes above, not tied to any book/chapter/verse. Opened from the toolbar
+// icon. Every entry is date-stamped on save, and re-stamped whenever edited.
+
+function formatJournalDate(ts) {
+  return new Date(ts).toLocaleString(undefined, {
+    year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+  });
+}
+
+function journalPreview(text) {
+  const firstLine = text.split("\n").find((l) => l.trim()) || "";
+  return firstLine.length > 80 ? firstLine.slice(0, 80) + "…" : firstLine;
+}
+
+function openNotepad() {
+  const modal = document.getElementById("notepadModal");
+  const body = document.getElementById("notepadModalBody");
+  let expandedId = null;
+
+  // The compose box and filters are built once (not re-rendered per keystroke)
+  // so the filter inputs never lose focus while typing; only the entry list
+  // below them is replaced on every change.
+  body.innerHTML = `
+    <div class="note-new">
+      <textarea id="newJournalText" placeholder="Write a new note&hellip;"></textarea>
+      <button id="addJournalBtn">Save note</button>
+    </div>
+    <div class="journal-filters">
+      <input type="text" id="journalSearch" placeholder="Filter by keyword&hellip;">
+      <label>From <input type="date" id="journalFrom"></label>
+      <label>To <input type="date" id="journalTo"></label>
+      <button id="journalClearFilters">Clear filters</button>
+    </div>
+    <div class="notes-list journal-list" id="journalList"></div>`;
+
+  const list = document.getElementById("journalList");
+  const searchInput = document.getElementById("journalSearch");
+  const fromInput = document.getElementById("journalFrom");
+  const toInput = document.getElementById("journalTo");
+
+  function currentFilters() {
+    return {
+      query: searchInput.value,
+      fromTs: fromInput.value ? new Date(fromInput.value + "T00:00:00").getTime() : null,
+      toTs: toInput.value ? new Date(toInput.value + "T23:59:59.999").getTime() : null,
+    };
+  }
+
+  function renderList() {
+    const entries = Journal.filter(currentFilters());
+
+    list.innerHTML = entries.map((e) => {
+      if (e.id === expandedId) {
+        return `<div class="note-item journal-entry-open" data-id="${e.id}">
+            <div class="journal-entry-date">${escapeHtml(formatJournalDate(e.ts))}</div>
+            <textarea class="note-text">${escapeHtml(e.text)}</textarea>
+            <div class="note-actions">
+              <button class="journal-save">Save</button>
+              <button class="journal-delete">Delete</button>
+              <button class="journal-collapse">Close</button>
+            </div>
+          </div>`;
+      }
+      const preview = journalPreview(e.text);
+      return `<div class="journal-entry-row" data-id="${e.id}" tabindex="0" role="button">
+          <span class="journal-entry-date">${escapeHtml(formatJournalDate(e.ts))}</span>
+          <span class="journal-entry-preview">${preview ? escapeHtml(preview) : "<em>(empty)</em>"}</span>
+        </div>`;
+    }).join("") || `<p class="no-notes">${entries.length === 0 && (searchInput.value || fromInput.value || toInput.value) ? "No notes match those filters." : "No notes yet. Write your first one above."}</p>`;
+
+    list.querySelectorAll(".journal-entry-row").forEach((row) => {
+      const open = () => { expandedId = row.dataset.id; renderList(); };
+      row.addEventListener("click", open);
+      row.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+      });
+    });
+    list.querySelectorAll(".journal-entry-open").forEach((item) => {
+      const id = item.dataset.id;
+      item.querySelector(".journal-save").addEventListener("click", () => {
+        const text = item.querySelector(".note-text").value.trim();
+        if (text) Journal.update(id, text);
+        expandedId = null;
+        renderList();
+      });
+      item.querySelector(".journal-delete").addEventListener("click", () => {
+        if (!confirm("Delete this note? This can't be undone.")) return;
+        Journal.remove(id);
+        expandedId = null;
+        renderList();
+      });
+      item.querySelector(".journal-collapse").addEventListener("click", () => {
+        expandedId = null;
+        renderList();
+      });
+    });
+  }
+
+  document.getElementById("addJournalBtn").addEventListener("click", () => {
+    const ta = document.getElementById("newJournalText");
+    const text = ta.value.trim();
+    if (!text) return;
+    Journal.add(text);
+    ta.value = "";
+    renderList();
+  });
+
+  searchInput.addEventListener("input", renderList);
+  fromInput.addEventListener("change", renderList);
+  toInput.addEventListener("change", renderList);
+  document.getElementById("journalClearFilters").addEventListener("click", () => {
+    searchInput.value = "";
+    fromInput.value = "";
+    toInput.value = "";
+    renderList();
+  });
+
+  renderList();
+  openModal(modal);
+  document.getElementById("newJournalText").focus();
 }
 
 // ---------- Search ----------
@@ -1084,6 +1295,9 @@ function initUI() {
   document.getElementById("mapsIconBtn").addEventListener("click", () => {
     renderMapsGallery();
     openModal(document.getElementById("mapsModal"));
+  });
+  document.getElementById("notepadIconBtn").addEventListener("click", () => {
+    openNotepad();
   });
   document.getElementById("coolIconBtn").addEventListener("click", () => {
     showTodaysArtifact();

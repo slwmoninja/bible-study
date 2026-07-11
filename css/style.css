@@ -665,6 +665,24 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
 .no-notes { font-style: italic; color: var(--ink-soft); }
 .note-new { border-top: 2px dashed var(--border-ornate); padding-top: 0.8rem; }
 
+.notes-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.notes-panel-heading h3 { margin: 0; }
+
+/* Shared "destructive action" button style -- clear-all/delete-all controls,
+   distinct from the normal gold action buttons so they read as more final. */
+.danger-btn {
+  font-family: inherit;
+  border: 1px solid var(--maroon);
+  background: none;
+  color: var(--maroon);
+  border-radius: 3px;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+.danger-btn:hover { background: var(--maroon); color: var(--parchment); }
+
 /* Notepad (general, non-verse-specific journal) */
 
 #notepadModalBody .note-new { border-top: none; padding-top: 0; margin-bottom: 0.8rem; }
@@ -707,6 +725,10 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
   font-size: 0.8rem;
 }
 .journal-filters button:hover { background: var(--highlight); }
+/* Higher specificity than ".journal-filters button" above, so "Delete all"
+   keeps the shared .danger-btn look instead of the neutral filter-button one. */
+.journal-filters .danger-btn { border-color: var(--maroon); color: var(--maroon); }
+.journal-filters .danger-btn:hover { background: var(--maroon); color: var(--parchment); }
 
 .journal-entry-row {
   display: flex;
@@ -724,6 +746,7 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
   color: var(--maroon);
 }
 .journal-entry-preview {
+  flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -731,6 +754,36 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
   color: var(--ink);
 }
 .journal-entry-open .journal-entry-date { display: block; margin-bottom: 0.3rem; }
+
+.journal-row-delete {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--maroon);
+  opacity: 0.55;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.2rem;
+}
+.journal-row-delete:hover { opacity: 1; }
+
+.journal-see-all {
+  display: block;
+  width: 100%;
+  margin-top: 0.4rem;
+  font-family: inherit;
+  border: none;
+  background: none;
+  color: var(--maroon);
+  font-weight: bold;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0.4rem;
+  text-align: center;
+}
+.journal-see-all:hover { color: var(--maroon-dark); }
 
 /* Settings */
 

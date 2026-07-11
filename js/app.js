@@ -27,6 +27,7 @@ withDefault("showWordGloss", true);
 withDefault("showArchaeology", true);
 withDefault("showNotes", true);
 withDefault("showBookArt", true);
+withDefault("deleteConfirmations", true);
 withDefault("commentaries", {});
 
 // YouVersion is the primary/default version (inserted first so it renders
@@ -648,6 +649,13 @@ function escapeHtml(s) {
   return div.innerHTML;
 }
 
+// Gate for every delete action (notepad and per-verse notes) behind the
+// Settings > "Delete confirmations" toggle -- skips the prompt entirely when
+// the user has turned it off.
+function confirmDelete(message) {
+  return !state.settings.deleteConfirmations || confirm(message);
+}
+
 // ---------- Study aid popover ----------
 
 function decodeGrammar(strongCode, gramCode) {
@@ -797,7 +805,10 @@ function showNotesPanel(book, chapter, verse) {
   function render() {
     const notes = Notes.forRef(book, chapter, verse);
     body.innerHTML = `
-      <h3>${escapeHtml(refLabel(book, chapter, verse))}</h3>
+      <div class="notes-panel-heading">
+        <h3>${escapeHtml(refLabel(book, chapter, verse))}</h3>
+        ${notes.length ? '<button id="deleteAllNotesBtn" class="danger-btn">Delete all</button>' : ""}
+      </div>
       <div class="notes-list">
         ${notes.map((n) => `
           <div class="note-item" data-id="${n.id}" draggable="true" title="Drag onto a verse, chapter, or book title to move this note there">
@@ -829,6 +840,7 @@ function showNotesPanel(book, chapter, verse) {
         renderChapter();
       });
       item.querySelector(".note-delete").addEventListener("click", () => {
+        if (!confirmDelete("Confirm delete?")) return;
         Notes.remove(book, chapter, verse, id);
         render();
         renderChapter();
@@ -844,6 +856,16 @@ function showNotesPanel(book, chapter, verse) {
         renderChapter();
       });
     });
+
+    const deleteAllBtn = body.querySelector("#deleteAllNotesBtn");
+    if (deleteAllBtn) {
+      deleteAllBtn.addEventListener("click", () => {
+        if (!confirmDelete("Confirm delete ALL entries?")) return;
+        Notes.clearRef(book, chapter, verse);
+        render();
+        renderChapter();
+      });
+    }
 
     body.querySelector("#addNoteBtn").addEventListener("click", () => {
       const ta = body.querySelector("#newNoteText");
@@ -886,10 +908,13 @@ function journalPreview(text) {
   return firstLine.length > 80 ? firstLine.slice(0, 80) + "…" : firstLine;
 }
 
+const JOURNAL_COLLAPSED_LIMIT = 3;
+
 function openNotepad() {
   const modal = document.getElementById("notepadModal");
   const body = document.getElementById("notepadModalBody");
   let expandedId = null;
+  let showAll = false; // capped to JOURNAL_COLLAPSED_LIMIT rows until "See all entries" is clicked
 
   // The compose box and filters are built once (not re-rendered per keystroke)
   // so the filter inputs never lose focus while typing; only the entry list
@@ -904,6 +929,7 @@ function openNotepad() {
       <label>From <input type="date" id="journalFrom"></label>
       <label>To <input type="date" id="journalTo"></label>
       <button id="journalClearFilters">Clear filters</button>
+      <button id="journalDeleteAll" class="danger-btn">Delete all</button>
     </div>
     <div class="notes-list journal-list" id="journalList"></div>`;
 
@@ -922,8 +948,10 @@ function openNotepad() {
 
   function renderList() {
     const entries = Journal.filter(currentFilters());
+    const visible = showAll ? entries : entries.slice(0, JOURNAL_COLLAPSED_LIMIT);
+    const hiddenCount = entries.length - visible.length;
 
-    list.innerHTML = entries.map((e) => {
+    const rowsHtml = visible.map((e) => {
       if (e.id === expandedId) {
         return `<div class="note-item journal-entry-open" data-id="${e.id}">
             <div class="journal-entry-date">${escapeHtml(formatJournalDate(e.ts))}</div>
@@ -939,14 +967,40 @@ function openNotepad() {
       return `<div class="journal-entry-row" data-id="${e.id}" tabindex="0" role="button">
           <span class="journal-entry-date">${escapeHtml(formatJournalDate(e.ts))}</span>
           <span class="journal-entry-preview">${preview ? escapeHtml(preview) : "<em>(empty)</em>"}</span>
+          <button class="journal-row-delete" title="Delete this note" aria-label="Delete this note">&times;</button>
         </div>`;
     }).join("") || `<p class="no-notes">${entries.length === 0 && (searchInput.value || fromInput.value || toInput.value) ? "No notes match those filters." : "No notes yet. Write your first one above."}</p>`;
 
+    const moreHtml = hiddenCount > 0
+      ? `<button class="journal-see-all">See all entries (${entries.length})</button>`
+      : (showAll && entries.length > JOURNAL_COLLAPSED_LIMIT
+        ? `<button class="journal-see-all">Show fewer</button>`
+        : "");
+
+    list.innerHTML = rowsHtml + moreHtml;
+
+    const seeAllBtn = list.querySelector(".journal-see-all");
+    if (seeAllBtn) {
+      seeAllBtn.addEventListener("click", () => {
+        showAll = !showAll;
+        renderList();
+      });
+    }
+
     list.querySelectorAll(".journal-entry-row").forEach((row) => {
-      const open = () => { expandedId = row.dataset.id; renderList(); };
+      const id = row.dataset.id;
+      const open = () => { expandedId = id; renderList(); };
       row.addEventListener("click", open);
       row.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+      });
+      // Deletes straight from the rolled-up row -- no need to open/expand it first.
+      row.querySelector(".journal-row-delete").addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (!confirmDelete("Confirm delete?")) return;
+        Journal.remove(id);
+        if (expandedId === id) expandedId = null;
+        renderList();
       });
     });
     list.querySelectorAll(".journal-entry-open").forEach((item) => {
@@ -958,7 +1012,7 @@ function openNotepad() {
         renderList();
       });
       item.querySelector(".journal-delete").addEventListener("click", () => {
-        if (!confirm("Delete this note? This can't be undone.")) return;
+        if (!confirmDelete("Confirm delete?")) return;
         Journal.remove(id);
         expandedId = null;
         renderList();
@@ -986,6 +1040,12 @@ function openNotepad() {
     searchInput.value = "";
     fromInput.value = "";
     toInput.value = "";
+    renderList();
+  });
+  document.getElementById("journalDeleteAll").addEventListener("click", () => {
+    if (!confirmDelete("Confirm delete ALL entries?")) return;
+    Journal.clear();
+    expandedId = null;
     renderList();
   });
 
@@ -1319,6 +1379,13 @@ function initUI() {
 
   initYouVersionSettings();
   renderCommentaryToggles();
+
+  const deleteConfirmToggle = document.getElementById("deleteConfirmationsToggle");
+  deleteConfirmToggle.checked = state.settings.deleteConfirmations;
+  deleteConfirmToggle.addEventListener("change", () => {
+    state.settings.deleteConfirmations = deleteConfirmToggle.checked;
+    saveSettings();
+  });
 
   const wifiToggle = document.getElementById("wifiOnlyToggle");
   wifiToggle.checked = state.settings.wifiOnly;

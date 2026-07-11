@@ -57,6 +57,12 @@ const Notes = (() => {
     saveAll(all);
   }
 
+  function clearRef(book, chapter, verse) {
+    const all = loadAll();
+    delete all[refKey(book, chapter, verse)];
+    saveAll(all);
+  }
+
   function move(fromBook, fromChapter, fromVerse, id, toBook, toChapter, toVerse) {
     const all = loadAll();
     const fromKey = refKey(fromBook, fromChapter, fromVerse);
@@ -72,5 +78,5 @@ const Notes = (() => {
     return true;
   }
 
-  return { forRef, hasNotes, add, update, remove, move, refKey };
+  return { forRef, hasNotes, add, update, remove, clearRef, move, refKey };
 })();

@@ -46,6 +46,10 @@ const Journal = (() => {
     saveAll(loadAll().filter((e) => e.id !== id));
   }
 
+  function clear() {
+    saveAll([]);
+  }
+
   // fromTs/toTs are inclusive day boundaries (already end-of-day-adjusted by
   // the caller); query is a case-insensitive substring match against the text.
   function filter({ query, fromTs, toTs } = {}) {
@@ -59,5 +63,5 @@ const Journal = (() => {
     return entries;
   }
 
-  return { all, add, update, remove, filter };
+  return { all, add, update, remove, clear, filter };
 })();

@@ -292,13 +292,6 @@ main#content {
   text-align: center;
   min-width: 0;
 }
-.book-chapter-line {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-}
 .book-title-block h1 {
   font-family: "Palatino Linotype", Georgia, serif;
   color: #000080;
@@ -344,18 +337,6 @@ main#content {
 .commentary-icon:hover { opacity: 1; }
 .verse-versions { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
 .version-line { display: flex; align-items: baseline; gap: 0.4rem; }
-.version-tag {
-  font-size: 0.65rem;
-  font-weight: bold;
-  color: var(--maroon-dark);
-  background: var(--gold-bright);
-  border-radius: 3px;
-  padding: 0.05rem 0.35rem;
-  flex-shrink: 0;
-  align-self: flex-start;
-  margin-top: 0.3rem;
-}
-
 .version-attribution {
   grid-area: attribution;
   justify-self: end;

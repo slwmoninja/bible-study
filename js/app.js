@@ -373,7 +373,6 @@ async function renderChapter() {
     if (texts[id]) Object.keys(texts[id]).forEach((vn) => verseNumSet.add(vn));
   }
   const verseNums = [...verseNumSet].sort((a, b) => Number(a) - Number(b));
-  const showVersionTags = versionIds.length > 1;
 
   // Every active version failed (e.g. the only one on is YouVersion with no/bad
   // API key) -- show why instead of silently rendering an empty chapter.
@@ -418,9 +417,8 @@ async function renderChapter() {
       const vtext = texts[id] && texts[id][vn];
       if (!vtext) return "";
       fullChapterText += " " + vtext;
-      const tag = showVersionTags ? `<span class="version-tag">${escapeHtml(versionTagLabel(id))}</span>` : "";
       const text = hl && hl.kind === "text" ? highlightMatch(vtext, hl.term) : escapeHtml(vtext);
-      return `<div class="version-line">${tag}<span class="verse-text">${text}</span></div>`;
+      return `<div class="version-line"><span class="verse-text">${text}</span></div>`;
     }).join("");
 
     const hasAnyCommentary = commentaryIds.some((id) => {
@@ -605,10 +603,8 @@ function renderBookHeader(meta, chapter, versionIds) {
   return `<header class="book-header">
       ${artHtml}
       <div class="book-title-block">
-        <div class="book-chapter-line">
-          <h1>${escapeHtml(meta.n)}</h1>
-          <div class="chapter-label">Chapter ${chapter}</div>
-        </div>
+        <h1>${escapeHtml(meta.n)}</h1>
+        <div class="chapter-label">Chapter ${chapter}</div>
       </div>
       ${attributionHtml}
     </header>`;

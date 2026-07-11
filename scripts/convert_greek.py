@@ -91,7 +91,7 @@ def write_books(data):
         path = os.path.join(OUT_DIR, f"{book}.js")
         with open(path, "w", encoding="utf-8") as f:
             f.write("window.INTERLINEAR = window.INTERLINEAR || {};\n")
-            f.write(f"window.INTERLINEAR.{book} = ")
+            f.write(f"window.INTERLINEAR[{json.dumps(book)}] = ")
             json.dump(content, f, ensure_ascii=False, separators=(",", ":"))
             f.write(";\n")
         n_verses = sum(len(v) for v in content.values())

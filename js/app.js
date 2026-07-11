@@ -427,10 +427,10 @@ async function renderChapter() {
     });
     const commentaryHtml = hasAnyCommentary
       ? `<button class="commentary-icon" data-book="${state.book}" data-chapter="${state.chapter}" data-verse="${vn}" title="Commentary">
-          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
-            <path d="M12,2.5 C8.4,2.5 5.8,5.1 5.8,8.5 C5.8,10.6 7,12.1 8.1,13.4 C8.9,14.3 9.4,15 9.4,15.8 L14.6,15.8 C14.6,15 15.1,14.3 15.9,13.4 C17,12.1 18.2,10.6 18.2,8.5 C18.2,5.1 15.6,2.5 12,2.5 Z" fill="none" stroke="currentColor" stroke-width="1.3"/>
-            <line x1="9.6" y1="18" x2="14.4" y2="18" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
-            <line x1="10.1" y1="20.2" x2="13.9" y2="20.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+          <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+            <path d="M12,2.5 C8.4,2.5 5.8,5.1 5.8,8.5 C5.8,10.6 7,12.1 8.1,13.4 C8.9,14.3 9.4,15 9.4,15.8 L14.6,15.8 C14.6,15 15.1,14.3 15.9,13.4 C17,12.1 18.2,10.6 18.2,8.5 C18.2,5.1 15.6,2.5 12,2.5 Z" fill="#ffd400" stroke="#000" stroke-width="1.5"/>
+            <line x1="9.6" y1="18" x2="14.4" y2="18" stroke="#000" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="10.1" y1="20.2" x2="13.9" y2="20.2" stroke="#000" stroke-width="1.3" stroke-linecap="round"/>
           </svg>
         </button>`
       : "";

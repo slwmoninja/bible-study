@@ -191,6 +191,12 @@ function renderVersionToggles() {
 // Settings UI knows whether the current key (if any) is actually working.
 let youVersionHasError = false;
 
+// Per-version fetch errors from the most recent renderChapter() -- lets the
+// toolbar quick-select dropdown default to whichever active version actually
+// rendered (e.g. ASV) rather than always the first one turned on (e.g. NIV
+// before an API key is entered, which fails silently into the ASV fallback).
+let lastRenderErrors = {};
+
 // Keeps the Settings checkbox in sync when the version was toggled some
 // other way (e.g. picked from the toolbar quick-select dropdown instead),
 // and keeps the key/Bible ID fields tucked away unless they're needed --
@@ -283,7 +289,8 @@ function populateQuickVersionSelect() {
 
 function syncQuickVersionSelect() {
   const sel = document.getElementById("quickVersionSelect");
-  const current = activeVersionIds()[0] || "ASV";
+  const active = activeVersionIds();
+  const current = active.find((id) => !lastRenderErrors[id]) || active[0] || "ASV";
   if ([...sel.options].some((o) => o.value === current)) sel.value = current;
 }
 
@@ -352,6 +359,12 @@ async function renderChapter() {
   // key/Bible ID fields auto-reveal only when something needs fixing.
   youVersionHasError = versionIds.includes(YOUVERSION_ID) && !!errors[YOUVERSION_ID];
   if (document.getElementById("youversionToggle")) syncYouVersionToggleUI();
+
+  // Keep the toolbar quick-select dropdown showing whichever version is
+  // actually on screen this render (e.g. falls back to ASV while NIV has no
+  // working API key yet) rather than always the first version turned on.
+  lastRenderErrors = errors;
+  if (document.getElementById("quickVersionSelect")) syncQuickVersionSelect();
 
   // Union of verse numbers across all active versions (an online fetch failure
   // for one version shouldn't hide verses the other active versions do have).
@@ -592,10 +605,12 @@ function renderBookHeader(meta, chapter, versionIds) {
   return `<header class="book-header">
       ${artHtml}
       <div class="book-title-block">
-        <h1>${escapeHtml(meta.n)}</h1>
-        <div class="chapter-label">Chapter ${chapter}</div>
-        ${attributionHtml}
+        <div class="book-chapter-line">
+          <h1>${escapeHtml(meta.n)}</h1>
+          <div class="chapter-label">Chapter ${chapter}</div>
+        </div>
       </div>
+      ${attributionHtml}
     </header>`;
 }
 

@@ -3,6 +3,36 @@
 // map, sourced from Wikimedia Commons. Each links to its Commons source page.
 window.BIBLE_MAPS = [
   {
+    "id": "eden",
+    "era": "Primordial (Genesis 2)",
+    "title": "The Land of Eden",
+    "description": "An 1899 map proposing a location for the Garden of Eden at the headwaters of the Tigris and Euphrates, the two rivers of Genesis 2 still identifiable today.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/MACCOUN%281899%29_p019_GARDEN_OF_EDEN.jpg/330px-MACCOUN%281899%29_p019_GARDEN_OF_EDEN.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:MACCOUN(1899)_p019_GARDEN_OF_EDEN.jpg",
+    "commonsFile": "File:MACCOUN(1899) p019 GARDEN OF EDEN.jpg",
+    "license": "Public domain"
+  },
+  {
+    "id": "table_of_nations",
+    "era": "Post-Flood (Genesis 10)",
+    "title": "The Table of Nations",
+    "description": "An 1823 map tracing how the descendants of Noah's sons — Shem, Ham, and Japheth — spread out to people the nations of the earth after the Flood (Genesis 10).",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d1/The_World_as_Peopled_by_the_Descendants_of_Noah_Shewing_the_Countries_Possessed_by_Shem%2C_Ham_%26_Japhet_and_their_posterity_after_the_confusion_of_tongues..jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:The_World_as_Peopled_by_the_Descendants_of_Noah_Shewing_the_Countries_Possessed_by_Shem,_Ham_%26_Japhet_and_their_posterity_after_the_confusion_of_tongues..jpg",
+    "commonsFile": "File:The World as Peopled by the Descendants of Noah Shewing the Countries Possessed by Shem, Ham & Japhet and their posterity after the confusion of tongues..jpg",
+    "license": "Public domain"
+  },
+  {
+    "id": "sumer",
+    "era": "Patriarchal Era Backdrop (Genesis)",
+    "title": "Ancient Sumer",
+    "description": "A map of the city-states of ancient Sumer and Elam in lower Mesopotamia, the cradle of civilization from which Abraham's family originated.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Cities_of_Sumer_%28en%29.svg/330px-Cities_of_Sumer_%28en%29.svg.png",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cities_of_Sumer_(en).svg",
+    "commonsFile": "File:Cities of Sumer (en).svg",
+    "license": "CC BY 3.0"
+  },
+  {
     "id": "ane",
     "era": "Patriarchal Era (Genesis)",
     "title": "The Ancient Near East",
@@ -33,6 +63,16 @@ window.BIBLE_MAPS = [
     "license": "CC BY 2.5"
   },
   {
+    "id": "tabernacle",
+    "era": "Wilderness Period (Exodus – Numbers)",
+    "title": "The Tabernacle of Moses",
+    "description": "A schematic floor plan of the portable Tabernacle sanctuary that Israel carried through the wilderness, showing the outer court, Holy Place, and Most Holy Place.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Tabernacle_Schematic.jpg/330px-Tabernacle_Schematic.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tabernacle_Schematic.jpg",
+    "commonsFile": "File:Tabernacle Schematic.jpg",
+    "license": "CC BY-SA 3.0"
+  },
+  {
     "id": "canaan",
     "era": "Conquest & Judges (Joshua – Judges)",
     "title": "Canaan Divided Among the Tribes",
@@ -43,6 +83,26 @@ window.BIBLE_MAPS = [
     "license": "Public domain"
   },
   {
+    "id": "saul",
+    "era": "United Monarchy (1 Samuel)",
+    "title": "The Kingdom of Saul",
+    "description": "An 1887 map of the territory of Saul, Israel's first king, including an inset of his final battle against the Philistines at Mount Gilboa.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Jesse_Lyman_Hurlbut%2C_Kingdom_of_Saul_%28FL36567364_3908883%29.jpg/330px-Jesse_Lyman_Hurlbut%2C_Kingdom_of_Saul_%28FL36567364_3908883%29.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Jesse_Lyman_Hurlbut,_Kingdom_of_Saul_(FL36567364_3908883).jpg",
+    "commonsFile": "File:Jesse Lyman Hurlbut, Kingdom of Saul (FL36567364 3908883).jpg",
+    "license": "Public domain"
+  },
+  {
+    "id": "city_of_david",
+    "era": "United Monarchy (2 Samuel)",
+    "title": "The City of David",
+    "description": "A map of the City of David, the original Jebusite stronghold David conquered and made his capital, on the ridge just south of today's Temple Mount.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/City_of_David_Map.jpg/330px-City_of_David_Map.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:City_of_David_Map.jpg",
+    "commonsFile": "File:City of David Map.jpg",
+    "license": "CC BY-SA 4.0"
+  },
+  {
     "id": "monarchy",
     "era": "United Monarchy (1–2 Samuel, 1 Kings)",
     "title": "The Kingdom of David and Solomon",
@@ -50,6 +110,16 @@ window.BIBLE_MAPS = [
     "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/MACCOUN%281899%29_p095_ABOUT_975_TO_930_B.C._-_KINGDOM_OF_DAVID_AND_SOLOMON.jpg/330px-MACCOUN%281899%29_p095_ABOUT_975_TO_930_B.C._-_KINGDOM_OF_DAVID_AND_SOLOMON.jpg",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AMACCOUN%281899%29_p095_ABOUT_975_TO_930_B.C._-_KINGDOM_OF_DAVID_AND_SOLOMON.jpg",
     "commonsFile": "File:MACCOUN(1899) p095 ABOUT 975 TO 930 B.C. - KINGDOM OF DAVID AND SOLOMON.jpg",
+    "license": "Public domain"
+  },
+  {
+    "id": "assyria",
+    "era": "Divided Kingdom (2 Kings 17)",
+    "title": "The Assyrian Empire",
+    "description": "A map of the Assyrian Empire at its territorial height, the power God used to judge and exile the northern kingdom of Israel.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Map_of_the_Assyrian_Empire.svg/330px-Map_of_the_Assyrian_Empire.svg.png",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Map_of_the_Assyrian_Empire.svg",
+    "commonsFile": "File:Map of the Assyrian Empire.svg",
     "license": "Public domain"
   },
   {
@@ -113,16 +183,6 @@ window.BIBLE_MAPS = [
     "license": "CC BY-SA 4.0"
   },
   {
-    "id": "parthia",
-    "era": "Acts (Pentecost)",
-    "title": "The Parthian Empire",
-    "description": "Rome's great eastern rival, home to some of the \"Parthians and Medes\" present at Pentecost.",
-    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Parthian_Empire.png/330px-Parthian_Empire.png",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AParthian_Empire.png",
-    "commonsFile": "File:Parthian Empire.png",
-    "license": "CC BY-SA 4.0"
-  },
-  {
     "id": "rome_trajan",
     "era": "New Testament / Early Church",
     "title": "The Roman Empire at Its Height (AD 117)",
@@ -150,6 +210,36 @@ window.BIBLE_MAPS = [
     "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Herodian_Kingdom_political_map.svg/330px-Herodian_Kingdom_political_map.svg.png",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AHerodian_Kingdom_political_map.svg",
     "commonsFile": "File:Herodian Kingdom political map.svg",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "id": "jerusalem_jesus",
+    "era": "Gospels",
+    "title": "Jerusalem in the Time of Jesus",
+    "description": "A map of Jerusalem's walls, gates, and landmarks as they stood in the 1st century AD, during the ministry of Jesus.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Jerusalem_at_Jesus_time_EL.png/330px-Jerusalem_at_Jesus_time_EL.png",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Jerusalem_at_Jesus_time_EL.png",
+    "commonsFile": "File:Jerusalem at Jesus time EL.png",
+    "license": "CC BY-SA 3.0"
+  },
+  {
+    "id": "herods_temple",
+    "era": "Gospels",
+    "title": "Herod's Temple",
+    "description": "A schematic plan of Herod's Temple and its courts as it stood in Jesus' day, from the 1911 Encyclopædia Britannica.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/EB1911_Temple_-_Plan_of_Herod%27s_Temple_and_Courts.jpg/330px-EB1911_Temple_-_Plan_of_Herod%27s_Temple_and_Courts.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:EB1911_Temple_-_Plan_of_Herod's_Temple_and_Courts.jpg",
+    "commonsFile": "File:EB1911 Temple - Plan of Herod's Temple and Courts.jpg",
+    "license": "Public domain"
+  },
+  {
+    "id": "galilee_topo",
+    "era": "Gospels",
+    "title": "The Sea of Galilee",
+    "description": "A bathymetric (depth-contour) map of the Sea of Galilee, the freshwater lake at the center of Jesus' Galilean ministry and many Gospel miracles.",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Bathymetric_map_of_Sea_of_Galilee.jpg/330px-Bathymetric_map_of_Sea_of_Galilee.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bathymetric_map_of_Sea_of_Galilee.jpg",
+    "commonsFile": "File:Bathymetric map of Sea of Galilee.jpg",
     "license": "CC BY-SA 4.0"
   },
   {

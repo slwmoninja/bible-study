@@ -240,16 +240,18 @@ main#content {
 /* Book header with illuminated art */
 
 .book-header {
-  display: flex;
-  gap: 1.2rem;
-  align-items: center;
+  display: grid;
+  grid-template-columns: auto 1fr minmax(0, 200px);
+  grid-template-areas: "art title attribution";
+  align-items: start;
+  gap: 0.8rem 1.2rem;
   border-bottom: 3px double var(--border-ornate);
   padding-bottom: 1rem;
   margin-bottom: 0.6rem;
-  flex-wrap: wrap;
 }
 
 .book-art {
+  grid-area: art;
   display: block;
   text-decoration: none;
   color: var(--ink-soft);
@@ -284,6 +286,19 @@ main#content {
 }
 .illum-ornament { font-size: 3rem; color: var(--gold); }
 
+.book-title-block {
+  grid-area: title;
+  justify-self: center;
+  text-align: center;
+  min-width: 0;
+}
+.book-chapter-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
 .book-title-block h1 {
   font-family: "Palatino Linotype", Georgia, serif;
   color: #000080;
@@ -342,9 +357,11 @@ main#content {
 }
 
 .version-attribution {
-  margin-top: 0.3rem;
+  grid-area: attribution;
+  justify-self: end;
   font-size: 0.7rem;
   color: var(--maroon);
+  text-align: right;
 }
 
 .verse:first-child .version-line:first-child .verse-text::first-letter {
@@ -651,10 +668,12 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
 
 @media (max-width: 600px) {
   main#content { margin: 0.6rem; padding: 1rem; }
+  .book-header { grid-template-columns: auto 1fr minmax(0, 120px); gap: 0.5rem 0.6rem; }
   .book-art { max-width: 140px; }
   .book-art img { height: 88px; max-width: 140px; }
   .book-art-placeholder { width: 88px; height: 88px; }
   .book-title-block h1 { font-size: 1.9rem; }
+  .version-attribution { font-size: 0.6rem; }
   .verses { font-size: 1.05rem; }
   .interlinear-row { margin-left: 0.5rem; }
 }

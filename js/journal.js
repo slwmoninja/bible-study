@@ -20,15 +20,29 @@ const Journal = (() => {
     localStorage.setItem(KEY, JSON.stringify(entries));
   }
 
-  // Newest-first, by each entry's date stamp (which moves to "now" on edit --
+  // Templates (isTemplate: true) are pushed above regular entries; within
+  // each group, newest-first by date stamp (which moves to "now" on edit --
   // see update() -- so a just-edited entry surfaces back to the top).
   function all() {
-    return loadAll().sort((a, b) => b.ts - a.ts);
+    return loadAll().sort((a, b) => {
+      const at = !!a.isTemplate, bt = !!b.isTemplate;
+      if (at !== bt) return at ? -1 : 1;
+      return b.ts - a.ts;
+    });
   }
 
-  function add(text) {
+  function add(text, isTemplate) {
     const entries = loadAll();
-    entries.push({ id: Date.now() + "-" + Math.random().toString(36).slice(2), text, ts: Date.now() });
+    entries.push({ id: Date.now() + "-" + Math.random().toString(36).slice(2), text, ts: Date.now(), isTemplate: !!isTemplate });
+    saveAll(entries);
+  }
+
+  // Toggling template status is a metadata change, not a content edit -- it
+  // deliberately does NOT re-stamp ts the way update() does.
+  function setTemplate(id, isTemplate) {
+    const entries = loadAll();
+    const entry = entries.find((e) => e.id === id);
+    if (entry) entry.isTemplate = !!isTemplate;
     saveAll(entries);
   }
 
@@ -63,5 +77,5 @@ const Journal = (() => {
     return entries;
   }
 
-  return { all, add, update, remove, clear, filter };
+  return { all, add, update, remove, clear, filter, setTemplate };
 })();

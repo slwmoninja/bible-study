@@ -755,6 +755,34 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
 }
 .journal-entry-open .journal-entry-date { display: block; margin-bottom: 0.3rem; }
 
+/* Template rows (see js/journal.js Journal.all() -- templates sort above
+   regular entries) get a faint green tint and a leading "repeat" icon that
+   launches a new note pre-filled from that template. */
+.journal-entry-template { background: rgba(46,139,61,0.08); }
+.journal-entry-template:hover { background: rgba(46,139,61,0.15); }
+.journal-use-template {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.1rem;
+}
+.journal-use-template:hover { transform: scale(1.15); }
+
+.template-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.template-toggle-btn.active {
+  border-color: #2e8b3d;
+  color: #2e8b3d;
+  background: rgba(46,139,61,0.12);
+}
+.template-toggle-btn.active:hover { background: rgba(46,139,61,0.22); }
+
 .journal-row-delete {
   flex-shrink: 0;
   background: none;

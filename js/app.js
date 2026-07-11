@@ -908,6 +908,17 @@ function journalPreview(text) {
   return firstLine.length > 80 ? firstLine.slice(0, 80) + "…" : firstLine;
 }
 
+// Circular "repeat" glyph used for the template toggle (green when a note is
+// saved as a template, muted otherwise) and for the "start a new note from
+// this template" action shown on template rows.
+function repeatIconHtml(active) {
+  const color = active ? "#2e8b3d" : "#9a8a6a";
+  return `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+      <path d="M20,12 A8,8 0 1 1 12,4" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M12,1 L12,7 L18,7 Z" fill="${color}"/>
+    </svg>`;
+}
+
 const JOURNAL_COLLAPSED_LIMIT = 3;
 
 function openNotepad() {
@@ -915,6 +926,7 @@ function openNotepad() {
   const body = document.getElementById("notepadModalBody");
   let expandedId = null;
   let showAll = false; // capped to JOURNAL_COLLAPSED_LIMIT rows until "See all entries" is clicked
+  let newIsTemplate = false; // template toggle for the not-yet-saved compose box
 
   // The compose box and filters are built once (not re-rendered per keystroke)
   // so the filter inputs never lose focus while typing; only the entry list
@@ -922,7 +934,10 @@ function openNotepad() {
   body.innerHTML = `
     <div class="note-new">
       <textarea id="newJournalText" placeholder="Write a new note&hellip;"></textarea>
-      <button id="addJournalBtn">Save note</button>
+      <div class="note-actions">
+        <button id="addJournalBtn">Save note</button>
+        <button id="newJournalTemplateBtn" class="template-toggle-btn" title="Save as template" aria-pressed="false">${repeatIconHtml(false)} Save as template</button>
+      </div>
     </div>
     <div class="journal-filters">
       <input type="text" id="journalSearch" placeholder="Filter by keyword&hellip;">
@@ -953,18 +968,23 @@ function openNotepad() {
 
     const rowsHtml = visible.map((e) => {
       if (e.id === expandedId) {
-        return `<div class="note-item journal-entry-open" data-id="${e.id}">
+        return `<div class="note-item journal-entry-open" data-id="${e.id}" data-template="${!!e.isTemplate}">
             <div class="journal-entry-date">${escapeHtml(formatJournalDate(e.ts))}</div>
             <textarea class="note-text">${escapeHtml(e.text)}</textarea>
             <div class="note-actions">
               <button class="journal-save">Save</button>
+              <button class="journal-template-btn template-toggle-btn${e.isTemplate ? " active" : ""}" title="Save as template" aria-pressed="${!!e.isTemplate}">${repeatIconHtml(!!e.isTemplate)} ${e.isTemplate ? "Template" : "Save as template"}</button>
               <button class="journal-delete">Delete</button>
               <button class="journal-collapse">Close</button>
             </div>
           </div>`;
       }
       const preview = journalPreview(e.text);
-      return `<div class="journal-entry-row" data-id="${e.id}" tabindex="0" role="button">
+      const templateIcon = e.isTemplate
+        ? `<button class="journal-use-template" title="Start a new note from this template" aria-label="Start a new note from this template">${repeatIconHtml(true)}</button>`
+        : "";
+      return `<div class="journal-entry-row${e.isTemplate ? " journal-entry-template" : ""}" data-id="${e.id}" tabindex="0" role="button">
+          ${templateIcon}
           <span class="journal-entry-date">${escapeHtml(formatJournalDate(e.ts))}</span>
           <span class="journal-entry-preview">${preview ? escapeHtml(preview) : "<em>(empty)</em>"}</span>
           <button class="journal-row-delete" title="Delete this note" aria-label="Delete this note">&times;</button>
@@ -1002,6 +1022,19 @@ function openNotepad() {
         if (expandedId === id) expandedId = null;
         renderList();
       });
+      // Launches a new note pre-filled from this template, ready to tweak and save.
+      const useTemplateBtn = row.querySelector(".journal-use-template");
+      if (useTemplateBtn) {
+        useTemplateBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const tmpl = visible.find((v) => v.id === id) || entries.find((v) => v.id === id);
+          if (!tmpl) return;
+          const ta = document.getElementById("newJournalText");
+          ta.value = tmpl.text;
+          ta.focus();
+          ta.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
     });
     list.querySelectorAll(".journal-entry-open").forEach((item) => {
       const id = item.dataset.id;
@@ -1009,6 +1042,11 @@ function openNotepad() {
         const text = item.querySelector(".note-text").value.trim();
         if (text) Journal.update(id, text);
         expandedId = null;
+        renderList();
+      });
+      item.querySelector(".journal-template-btn").addEventListener("click", () => {
+        const isTemplate = item.dataset.template === "true";
+        Journal.setTemplate(id, !isTemplate);
         renderList();
       });
       item.querySelector(".journal-delete").addEventListener("click", () => {
@@ -1024,12 +1062,25 @@ function openNotepad() {
     });
   }
 
+  const newTemplateBtn = document.getElementById("newJournalTemplateBtn");
+  function syncNewTemplateBtn() {
+    newTemplateBtn.innerHTML = `${repeatIconHtml(newIsTemplate)} ${newIsTemplate ? "Template" : "Save as template"}`;
+    newTemplateBtn.classList.toggle("active", newIsTemplate);
+    newTemplateBtn.setAttribute("aria-pressed", String(newIsTemplate));
+  }
+  newTemplateBtn.addEventListener("click", () => {
+    newIsTemplate = !newIsTemplate;
+    syncNewTemplateBtn();
+  });
+
   document.getElementById("addJournalBtn").addEventListener("click", () => {
     const ta = document.getElementById("newJournalText");
     const text = ta.value.trim();
     if (!text) return;
-    Journal.add(text);
+    Journal.add(text, newIsTemplate);
     ta.value = "";
+    newIsTemplate = false;
+    syncNewTemplateBtn();
     renderList();
   });
 

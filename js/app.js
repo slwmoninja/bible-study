@@ -494,6 +494,7 @@ async function renderChapter() {
   }
   attachWordHandlers();
   attachCommentaryHandlers();
+  attachAttributionHandlers();
   populateVerseSelect(verseNums);
   pendingHighlight = null; // one-shot: only highlights the render right after a search-hit navigation
 }
@@ -621,7 +622,7 @@ function renderBookHeader(meta, chapter, versionIds) {
     .map((id) => {
       const text = versionAttributionText(id);
       return text
-        ? `<span class="version-attribution-item" title="${escapeHtml(text)}">${escapeHtml(id)}</span>`
+        ? `<button type="button" class="version-attribution-item" title="${escapeHtml(text)}">${escapeHtml(versionTagLabel(id))}</button>`
         : "";
     })
     .filter(Boolean);
@@ -742,6 +743,18 @@ function noteIconHtml(book, chapter, verse) {
         <line x1="7.5" y1="14.5" x2="16.5" y2="14.5" stroke="#000" stroke-width="1" stroke-linecap="round"/>
       </svg>
     </button>`;
+}
+
+// The title attribute already shows the full credit on hover for mouse users;
+// tapping does the same on touch devices, via a modal that stays open until
+// dismissed with its "x" (a tooltip alone isn't reliably reachable by tap).
+function attachAttributionHandlers() {
+  document.querySelectorAll(".version-attribution-item").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.getElementById("attributionModalBody").textContent = btn.title;
+      openModal(document.getElementById("attributionModal"));
+    });
+  });
 }
 
 function attachNoteIconHandlers() {

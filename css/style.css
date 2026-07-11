@@ -400,14 +400,17 @@ main#content {
   text-align: right;
 }
 .version-attribution-item {
+  font-family: inherit;
   font-size: 0.7rem;
   font-weight: bold;
   color: var(--maroon);
+  background: none;
   border: 1px solid var(--maroon);
   border-radius: 3px;
   padding: 0.05rem 0.3rem;
   cursor: help;
 }
+.version-attribution-item:hover { background: var(--highlight); }
 
 .verse:first-child .version-line:first-child .verse-text::first-letter {
   font-size: 2.6rem;

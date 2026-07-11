@@ -617,11 +617,16 @@ function renderBookHeader(meta, chapter, versionIds) {
        </a>`
     : `<div class="book-art book-art-placeholder"><span class="illum-ornament">&#10047;</span></div>`;
 
-  const attributions = (versionIds || [])
-    .map((id) => versionAttributionText(id))
+  const attributionItems = (versionIds || [])
+    .map((id) => {
+      const text = versionAttributionText(id);
+      return text
+        ? `<span class="version-attribution-item" title="${escapeHtml(text)}">${escapeHtml(id)}</span>`
+        : "";
+    })
     .filter(Boolean);
-  const attributionHtml = attributions.length
-    ? `<div class="version-attribution">${attributions.map(escapeHtml).join(" &nbsp;·&nbsp; ")}</div>`
+  const attributionHtml = attributionItems.length
+    ? `<div class="version-attribution">${attributionItems.join("")}</div>`
     : "";
 
   return `<header class="book-header">

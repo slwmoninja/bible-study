@@ -30,14 +30,28 @@ withDefault("showBookArt", true);
 withDefault("deleteConfirmations", true);
 withDefault("commentaries", {});
 
-// YouVersion is the primary/default version (inserted first so it renders
-// first when shown alongside others); ASV is also on by default as a
-// no-API-key-required fallback so the reader is never blank before the user
-// adds a YouVersion API key. Every other local version starts off, so the
-// user opts in ala carte rather than being shown everything at once.
-if (state.settings.versions[YOUVERSION_ID] === undefined) state.settings.versions[YOUVERSION_ID] = true;
+// Only one Bible version is ever active at a time (see selectSingleVersion).
+// ASV is the default -- it requires no API key, so the reader is never blank
+// on first load. NIV and every other version start off until picked.
+if (state.settings.versions[YOUVERSION_ID] === undefined) state.settings.versions[YOUVERSION_ID] = false;
 for (const id of LOCAL_VERSION_IDS) {
   if (state.settings.versions[id] === undefined) state.settings.versions[id] = id === "ASV";
+}
+
+// Migrate installs from before single-selection was enforced, where more
+// than one version could be active in parallel: collapse down to just one,
+// preferring NIV if it was on and already has a working key (so a user who
+// set NIV up isn't silently switched away from it), else the first other
+// active version, else ASV.
+{
+  const activeKeys = Object.keys(state.settings.versions).filter((k) => state.settings.versions[k]);
+  if (activeKeys.length > 1) {
+    const keep = (state.settings.versions[YOUVERSION_ID] && state.settings.youversionApiKey)
+      ? YOUVERSION_ID
+      : activeKeys.find((k) => k !== YOUVERSION_ID) || activeKeys[0];
+    for (const k of Object.keys(state.settings.versions)) state.settings.versions[k] = k === keep;
+    saveSettings(); // persist the collapse so this migration only runs once
+  }
 }
 // Matthew Henry on by default; JFB starts off, same ala-carte spirit as versions.
 for (const id of Object.keys(COMMENTARY_SOURCES)) {
@@ -46,6 +60,18 @@ for (const id of Object.keys(COMMENTARY_SOURCES)) {
 
 function saveSettings() {
   localStorage.setItem("bibleAppSettings", JSON.stringify(state.settings));
+}
+
+// Only one Bible version can be active at a time -- selecting one turns every
+// other version off, in Settings or the toolbar quick-select alike.
+function selectSingleVersion(id) {
+  for (const key of Object.keys(state.settings.versions)) {
+    state.settings.versions[key] = key === id;
+  }
+  saveSettings();
+  syncYouVersionToggleUI();
+  syncQuickVersionSelect();
+  renderChapter();
 }
 
 function activeVersionIds() {
@@ -180,10 +206,7 @@ function renderVersionToggles() {
 
   document.querySelectorAll(".version-toggle input").forEach((cb) => {
     cb.addEventListener("change", () => {
-      state.settings.versions[cb.dataset.id] = cb.checked;
-      saveSettings();
-      syncQuickVersionSelect();
-      renderChapter();
+      selectSingleVersion(cb.dataset.id);
     });
   });
 }
@@ -198,11 +221,11 @@ let youVersionHasError = false;
 // before an API key is entered, which fails silently into the ASV fallback).
 let lastRenderErrors = {};
 
-// Keeps the Settings checkbox in sync when the version was toggled some
-// other way (e.g. picked from the toolbar quick-select dropdown instead),
-// and keeps the key/Bible ID fields tucked away unless they're needed --
-// shown only while the version is on and there's no working key yet, so
-// Settings stays a single "NIV" checkbox once it's set up and working.
+// Keeps the Settings radio in sync when the version was selected some other
+// way (e.g. picked from the toolbar quick-select dropdown instead), and
+// keeps the key/Bible ID fields tucked away unless they're needed -- shown
+// only while the version is selected and there's no working key yet, so
+// Settings stays a single "NIV" radio once it's set up and working.
 function syncYouVersionToggleUI() {
   const toggle = document.getElementById("youversionToggle");
   const fields = document.getElementById("youversionFields");
@@ -221,11 +244,7 @@ function initYouVersionSettings() {
   syncYouVersionToggleUI();
 
   toggle.addEventListener("change", () => {
-    state.settings.versions[YOUVERSION_ID] = toggle.checked;
-    saveSettings();
-    syncYouVersionToggleUI();
-    syncQuickVersionSelect();
-    renderChapter();
+    selectSingleVersion(YOUVERSION_ID);
   });
   keyInput.addEventListener("change", () => {
     state.settings.youversionApiKey = keyInput.value.trim();
@@ -244,7 +263,7 @@ function initYouVersionSettings() {
 function versionToggleHtml(id, label) {
   const checked = state.settings.versions[id] ? "checked" : "";
   return `<label class="version-toggle">
-      <input type="checkbox" data-id="${id}" ${checked}> ${escapeHtml(label)}
+      <input type="radio" name="bibleVersion" data-id="${id}" ${checked}> ${escapeHtml(label)}
     </label>`;
 }
 
@@ -266,9 +285,9 @@ function renderCommentaryToggles() {
   });
 }
 
-// Toolbar convenience dropdown: a quick single-version switch. Picking one here
-// turns that version on and every other version off; for a parallel multi-version
-// reading view, use the ala-carte checkboxes in Settings instead.
+// Toolbar convenience dropdown: a quick version switch, mirroring the single-
+// select radios in Settings > Bible versions -- only one version is ever
+// active at a time, picked from either place.
 function populateQuickVersionSelect() {
   const sel = document.getElementById("quickVersionSelect");
   sel.innerHTML = "";

@@ -466,7 +466,7 @@ async function renderChapter() {
         // verse of the book rather than on every chapter/verse.
         const showDirectionHint = isHebrew && state.chapter === 1 && Number(vn) === 1;
         const directionHintHtml = showDirectionHint
-          ? `<div class="reading-direction-hint" dir="ltr" title="Hebrew reads right to left">Start here &larr;</div>`
+          ? `<a class="reading-direction-hint" dir="ltr" href="https://www.ancient-hebrew.org/alphabet/hebrew-alphabet-chart.htm" target="_blank" rel="noopener" title="Hebrew reads right to left — see the Hebrew alphabet chart">Start here &larr;</a>`
           : "";
         interlinearHtml = `<div class="interlinear-row" dir="${isHebrew ? "rtl" : "ltr"}">` +
           directionHintHtml +

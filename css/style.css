@@ -497,8 +497,11 @@ main#content {
   font-style: italic;
   color: var(--ink-soft);
   white-space: nowrap;
-  pointer-events: none;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: pointer;
 }
+.reading-direction-hint:hover { color: var(--maroon); }
 
 .word-box {
   display: flex;

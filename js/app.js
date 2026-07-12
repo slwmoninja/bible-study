@@ -1579,6 +1579,13 @@ function buildCopyPayload(fromVerse, toVerse, opts) {
         }
       }
     }
+
+    if (opts.notes) {
+      for (const note of Notes.forRef(state.book, state.chapter, vn)) {
+        plain += `   [Your note] ${note.text}\n`;
+        html += `<p style="margin-left:1.5em;"><em>Your note:</em> ${escapeHtml(note.text)}</p>`;
+      }
+    }
     plain += "\n";
   }
 
@@ -1687,6 +1694,7 @@ function initCopyControls() {
       commentary: document.getElementById("copyCommentary").checked,
       maps: document.getElementById("copyMaps").checked,
       discoveries: document.getElementById("copyDiscoveries").checked,
+      notes: document.getElementById("copyNotes").checked,
     };
 
     btn.disabled = true;

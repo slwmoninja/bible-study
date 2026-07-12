@@ -84,7 +84,7 @@ const YouVersionBible = (() => {
 
     const ref = `${bookAbbr.toUpperCase()}.${chapter}`;
     const url = `${API_BASE}/bibles/${encodeURIComponent(bibleId)}/passages/${encodeURIComponent(ref)}?format=html&include_headings=false&include_notes=false`;
-    const res = await fetch(url, { headers: { "X-YVP-App-Key": apiKey } });
+    const res = await fetchWithTimeout(url, { headers: { "X-YVP-App-Key": apiKey } });
     if (!res.ok) throw new Error(`YouVersion fetch failed: ${res.status}`);
     const data = await res.json();
     const verses = parseChapterHtml(data.content || "");

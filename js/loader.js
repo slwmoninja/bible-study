@@ -11,6 +11,11 @@ const Loader = (() => {
   const loaded = new Set();
   const inflight = new Map();
 
+  // 20s timeout: on a slow/stalled mobile connection, a <script> load has no
+  // built-in timeout -- it just never fires onload/onerror, which used to leave
+  // renderChapter()'s Promise.all() (and the "Loading..." message) stuck forever.
+  const SCRIPT_TIMEOUT_MS = 20000;
+
   function loadScript(src, { minimal = false } = {}) {
     if (loaded.has(src)) return Promise.resolve();
     if (typeof getAppSettings === "function") {
@@ -22,13 +27,28 @@ const Loader = (() => {
     const p = new Promise((resolve, reject) => {
       const el = document.createElement("script");
       el.src = src;
+      let settled = false;
+      const timer = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        inflight.delete(src);
+        el.remove();
+        reject(new Error("Timed out loading " + src + " -- check your connection and try again."));
+      }, SCRIPT_TIMEOUT_MS);
       el.onload = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
         loaded.add(src);
         inflight.delete(src);
         resolve();
       };
       el.onerror = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
         inflight.delete(src);
+        el.remove();
         reject(new Error("Failed to load " + src));
       };
       document.head.appendChild(el);

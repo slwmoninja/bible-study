@@ -268,7 +268,16 @@ function initYouVersionSettings() {
   keyInput.addEventListener("change", () => {
     state.settings.youversionApiKey = keyInput.value.trim();
     saveSettings();
-    renderChapter();
+    // On mobile, pasting a key blurs the field (the keyboard's "Next" affordance),
+    // which used to just hop focus to the Bible ID field below and leave Settings
+    // sitting open. If the key actually works, close Settings instead so the user
+    // lands back on the chapter/verse they were reading, now in NIV.
+    renderChapter().then(() => {
+      if (!youVersionHasError) {
+        const modal = document.getElementById("settingsModal");
+        if (typeof modal.close === "function") modal.close();
+      }
+    });
   });
   bibleIdInput.addEventListener("input", () => {
     state.settings.youversionBibleId = bibleIdInput.value.trim() || "111";

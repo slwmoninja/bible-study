@@ -21,7 +21,7 @@ const OnlineBible = (() => {
       if (!allowed) throw new WifiRequiredError();
     }
     const url = `https://bible-api.com/${encodeURIComponent(bookName)}+${chapter}?translation=${versionId}`;
-    const res = await fetch(url);
+    const res = await fetchWithTimeout(url);
     if (!res.ok) throw new Error("Online fetch failed: " + res.status);
     const data = await res.json();
     const verses = {};

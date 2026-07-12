@@ -46,3 +46,17 @@ const NetworkGuard = (() => {
 
   return { getConnection, canDetectType, isOnWifi, checkAllowed, checkAllowedMinimal };
 })();
+
+// Same stuck-forever problem as script loads (see js/loader.js) can happen to a plain
+// fetch() on a stalled mobile connection -- it has no built-in timeout either. Used by
+// js/online.js and js/youversion.js instead of calling fetch() directly.
+function fetchWithTimeout(url, options = {}, timeoutMs = 20000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal })
+    .catch((e) => {
+      if (e.name === "AbortError") throw new Error("Timed out fetching " + url + " -- check your connection and try again.");
+      throw e;
+    })
+    .finally(() => clearTimeout(timer));
+}

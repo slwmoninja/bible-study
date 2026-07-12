@@ -478,6 +478,7 @@ main#content {
 /* Interlinear */
 
 .interlinear-row {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
@@ -486,6 +487,17 @@ main#content {
   background: rgba(168,128,42,0.08);
   border-left: 3px solid var(--gold);
   border-radius: 3px;
+}
+
+.reading-direction-hint {
+  position: absolute;
+  top: -1.15rem;
+  right: 0;
+  font-size: 0.68rem;
+  font-style: italic;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .word-box {

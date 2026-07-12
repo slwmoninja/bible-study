@@ -460,7 +460,16 @@ async function renderChapter() {
     if (showInterlinear) {
       const words = ((window.INTERLINEAR[state.book] || {})[String(state.chapter)] || {})[vn];
       if (words && words.length) {
-        interlinearHtml = `<div class="interlinear-row" dir="${meta.t === "OT" ? "rtl" : "ltr"}">` +
+        const isHebrew = meta.t === "OT";
+        // One-time orientation cue for readers unfamiliar with Hebrew: right-to-left
+        // text starts at the opposite side from English, so flag it at the very first
+        // verse of the book rather than on every chapter/verse.
+        const showDirectionHint = isHebrew && state.chapter === 1 && Number(vn) === 1;
+        const directionHintHtml = showDirectionHint
+          ? `<div class="reading-direction-hint" dir="ltr" title="Hebrew reads right to left">Start here &larr;</div>`
+          : "";
+        interlinearHtml = `<div class="interlinear-row" dir="${isHebrew ? "rtl" : "ltr"}">` +
+          directionHintHtml +
           words.map((w, i) => renderWordBox(w, meta.t, state.book, state.chapter, vn, i, wordMatchesHighlight(w, hl))).join("") +
           `</div>`;
       }

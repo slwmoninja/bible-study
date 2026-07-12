@@ -912,6 +912,20 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
   gap: 0.15rem;
 }
 #youversionFields label.settings-note { margin-top: 0.4rem; }
+
+.error-log-text {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: monospace;
+  font-size: 0.8rem;
+  padding: 0.5rem;
+  border: 1px solid var(--parchment-dark);
+  border-radius: 4px;
+  resize: vertical;
+  margin-bottom: 0.6rem;
+  color: var(--ink-soft);
+  background: var(--highlight);
+}
 #youversionFields input[type="text"], #youversionFields input[type="password"] {
   font-family: inherit;
   font-size: 0.9rem;

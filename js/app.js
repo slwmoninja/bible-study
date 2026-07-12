@@ -383,6 +383,7 @@ async function getChapterTexts() {
       errors[id] = e instanceof WifiRequiredError
         ? "Blocked: \"Wi-Fi only\" is on and this device isn't on Wi-Fi."
         : e.message;
+      ErrorLog.record(errors[id], `version:${id}`);
     }
   }));
   return { versionIds, texts: results, errors };
@@ -406,12 +407,12 @@ async function renderChapter() {
   const promises = [getChapterTexts()];
   if (showInterlinear) {
     promises.push(
-      Loader.interlinear(state.book, { minimal: true }).catch(() => {}),
-      Loader.lexicon({ minimal: true }).catch(() => {}),
-      Loader.morphology({ minimal: true }).catch(() => {}));
+      Loader.interlinear(state.book, { minimal: true }).catch((e) => ErrorLog.record(e.message, "interlinear")),
+      Loader.lexicon({ minimal: true }).catch((e) => ErrorLog.record(e.message, "lexicon")),
+      Loader.morphology({ minimal: true }).catch((e) => ErrorLog.record(e.message, "morphology")));
   }
   for (const id of commentaryIds) {
-    promises.push(Loader.commentary(id, state.book).catch(() => {}));
+    promises.push(Loader.commentary(id, state.book).catch((e) => ErrorLog.record(e.message, `commentary:${id}`)));
   }
   const [{ versionIds, texts, errors }] = await Promise.all(promises);
 
@@ -1507,11 +1508,32 @@ async function downloadAllInterlinear(progressEl) {
       progressEl.textContent = e instanceof WifiRequiredError
         ? "Blocked: \"Wi-Fi only\" is on and this device isn't on Wi-Fi."
         : `Failed on ${b.n}: ${e.message}`;
+      ErrorLog.record(progressEl.textContent, "download all");
       return;
     }
     done++;
   }
   progressEl.textContent = `Done — all ${books.length} books downloaded for offline use.`;
+}
+
+// ---------- Error log ----------
+
+function refreshErrorLogText() {
+  document.getElementById("errorLogText").value = ErrorLog.formatForCopy();
+}
+
+function initErrorLogControls() {
+  document.getElementById("copyErrorLogBtn").addEventListener("click", async () => {
+    const status = document.getElementById("errorLogStatus");
+    const text = document.getElementById("errorLogText").value;
+    const ok = await copyToClipboard(`<pre>${escapeHtml(text)}</pre>`, text);
+    status.textContent = ok ? "Copied!" : "Couldn't access the clipboard in this browser.";
+  });
+  document.getElementById("clearErrorLogBtn").addEventListener("click", () => {
+    ErrorLog.clear();
+    refreshErrorLogText();
+    document.getElementById("errorLogStatus").textContent = "Cleared.";
+  });
 }
 
 function initDownloadControls() {
@@ -1787,6 +1809,7 @@ function initUI() {
   });
 
   document.getElementById("settingsBtn").addEventListener("click", () => {
+    refreshErrorLogText();
     openModal(document.getElementById("settingsModal"));
   });
 
@@ -1829,6 +1852,7 @@ function initUI() {
 
   initDownloadControls();
   initCopyControls();
+  initErrorLogControls();
 
   document.querySelectorAll("dialog .close-btn").forEach((btn) => {
     btn.addEventListener("click", () => {

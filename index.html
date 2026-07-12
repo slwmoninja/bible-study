@@ -281,9 +281,21 @@
 
     <button id="downloadAllBtn">Download entire Bible for offline use</button>
     <p id="downloadProgress" class="settings-note"></p>
+
+    <hr class="settings-divider">
+
+    <h3>Error code</h3>
+    <p class="settings-note">If something isn't working, copy this and send it along so it can be looked into.</p>
+    <textarea id="errorLogText" class="error-log-text" readonly rows="6"></textarea>
+    <div class="settings-row">
+      <button id="copyErrorLogBtn">Copy</button>
+      <button id="clearErrorLogBtn">Clear</button>
+    </div>
+    <p id="errorLogStatus" class="settings-note"></p>
   </div>
 </dialog>
 
+<script src="js/errorlog.js"></script>
 <script src="data/book_meta.js"></script>
 <script src="data/book_maps.js"></script>
 <script src="data/book_art.js"></script>

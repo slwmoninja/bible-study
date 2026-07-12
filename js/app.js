@@ -246,10 +246,24 @@ function initYouVersionSettings() {
   toggle.addEventListener("change", () => {
     selectSingleVersion(YOUVERSION_ID);
   });
+  // Save on every keystroke ("input"), not just on blur ("change") -- on
+  // mobile, closing the tab/app right after pasting a key can tear the page
+  // down before a blur ever fires, which would silently drop a change-only
+  // save and force the user to re-enter the key each time. The expensive
+  // re-render/network fetch still waits for "change" so we don't refetch on
+  // every keystroke.
+  keyInput.addEventListener("input", () => {
+    state.settings.youversionApiKey = keyInput.value.trim();
+    saveSettings();
+  });
   keyInput.addEventListener("change", () => {
     state.settings.youversionApiKey = keyInput.value.trim();
     saveSettings();
     renderChapter();
+  });
+  bibleIdInput.addEventListener("input", () => {
+    state.settings.youversionBibleId = bibleIdInput.value.trim() || "111";
+    saveSettings();
   });
   bibleIdInput.addEventListener("change", () => {
     state.settings.youversionBibleId = bibleIdInput.value.trim() || "111";
@@ -405,6 +419,7 @@ async function renderChapter() {
     populateVerseSelect([]);
     pendingHighlight = null;
     if (state.settings.showNotes) attachNoteIconHandlers();
+    attachBookMapIconHandlers();
     return;
   }
 
@@ -495,6 +510,7 @@ async function renderChapter() {
   attachWordHandlers();
   attachCommentaryHandlers();
   attachAttributionHandlers();
+  attachBookMapIconHandlers();
   populateVerseSelect(verseNums);
   pendingHighlight = null; // one-shot: only highlights the render right after a search-hit navigation
 }
@@ -528,7 +544,7 @@ function showCommentaryModal(book, chapter, verse) {
 function renderMapsGallery() {
   const gallery = document.getElementById("mapsGallery");
   gallery.innerHTML = window.BIBLE_MAPS.map((m) => `
-    <a class="map-card" href="${m.sourceUrl}" target="_blank" rel="noopener" title="Click for source (${escapeHtml(m.license)})">
+    <a class="map-card" id="map-card-${m.id}" href="${m.sourceUrl}" target="_blank" rel="noopener" title="Click for source (${escapeHtml(m.license)})">
       <img src="${m.thumbUrl}" alt="${escapeHtml(m.title)}" loading="lazy">
       <div class="map-card-info">
         <div class="map-era">${escapeHtml(m.era)}</div>
@@ -536,6 +552,37 @@ function renderMapsGallery() {
         <div class="map-desc">${escapeHtml(m.description)}</div>
       </div>
     </a>`).join("");
+}
+
+// Jumps straight to the map matching a book's era (see data/book_maps.js)
+// instead of making the reader scroll the whole gallery to find it.
+function showBookMap(bookAbbr) {
+  const mapId = window.BOOK_MAP_ID && window.BOOK_MAP_ID[bookAbbr];
+  if (!mapId) return;
+  renderMapsGallery();
+  openModal(document.getElementById("mapsModal"));
+  const card = document.getElementById(`map-card-${mapId}`);
+  if (card) {
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
+    card.classList.add("map-card-highlight");
+    setTimeout(() => card.classList.remove("map-card-highlight"), 2000);
+  }
+}
+
+function bookMapIconHtml(bookAbbr) {
+  if (!window.BOOK_MAP_ID || !window.BOOK_MAP_ID[bookAbbr]) return "";
+  return `<button class="book-map-icon" data-book="${bookAbbr}" title="Map of this book's era" aria-label="Map of this book's era">
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+        <path d="M2,5.5 L8,3.5 L15,5.5 L21,3.5 L21,18.5 L15,20.5 L8,18.5 L2,20.5 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+        <path d="M11.2,8.2 c1.6,0 2.6,1.7 1.6,3.1 l-1.6,2.1 l-1.6,-2.1 c-1,-1.4 0,-3.1 1.6,-3.1 Z" fill="currentColor"/>
+      </svg>
+    </button>`;
+}
+
+function attachBookMapIconHandlers() {
+  document.querySelectorAll(".book-map-icon").forEach((btn) => {
+    btn.addEventListener("click", () => showBookMap(btn.dataset.book));
+  });
 }
 
 // ---------- Something cool (daily artifact) ----------
@@ -635,6 +682,7 @@ function renderBookHeader(meta, chapter, versionIds) {
       <div class="book-title-block">
         <div class="book-title-row">
           <h1>${escapeHtml(meta.n)}</h1>
+          ${bookMapIconHtml(meta.a)}
           ${noteIconHtml(meta.a, null, null)}
         </div>
         <div class="chapter-row">

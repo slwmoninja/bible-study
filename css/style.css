@@ -352,6 +352,20 @@ main#content {
 .note-icon:hover { transform: scale(1.15); }
 .verse-line .note-icon { align-self: flex-start; margin-top: 0.3rem; }
 
+.book-map-icon {
+  flex-shrink: 0;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.1rem;
+  color: var(--maroon);
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2));
+}
+.book-map-icon:hover { transform: scale(1.15); }
+
 /* Drop-target feedback while dragging a note (see attachNoteDropHandlers). */
 .verse.note-drop-hover,
 .chapter-label.note-drop-hover,
@@ -512,6 +526,14 @@ main#content {
   overflow: hidden;
 }
 .map-card:hover { box-shadow: 0 0 0 2px var(--gold-bright); }
+.map-card-highlight {
+  box-shadow: 0 0 0 3px var(--maroon);
+  animation: map-card-pulse 2s ease-out;
+}
+@keyframes map-card-pulse {
+  0% { box-shadow: 0 0 0 3px var(--maroon), 0 0 12px 4px var(--maroon); }
+  100% { box-shadow: 0 0 0 3px var(--maroon); }
+}
 .map-card img {
   width: 100%;
   height: 130px;

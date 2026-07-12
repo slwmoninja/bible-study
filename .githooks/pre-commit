@@ -1,0 +1,6 @@
+#!/bin/sh
+# Keeps service-worker.js's CACHE_VERSION in sync with the actual content of
+# CORE_ASSETS on every commit, so installed PWAs never get stuck on a stale
+# cached copy after a push. See scripts/sync_cache_version.py.
+
+python3 "$(git rev-parse --show-toplevel)/scripts/sync_cache_version.py" || exit 1

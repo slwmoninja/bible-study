@@ -5,9 +5,17 @@ const COMMENTARY_SOURCES = {
   jfb: "Jamieson-Fausset-Brown (1871)",
 };
 
+// New users (nothing saved yet) open on Psalms; returning users resume exactly
+// where they left off. lastLocation.book is validated against BOOK_META so a
+// corrupted/outdated localStorage value can't strand the reader on an invalid book.
+const LAST_LOCATION_KEY = "bibleAppLastLocation";
+const lastLocation = JSON.parse(localStorage.getItem(LAST_LOCATION_KEY) || "null");
+const hasValidLastLocation = !!(lastLocation && lastLocation.book &&
+  window.BOOK_META.some((b) => b.a === lastLocation.book) && Number(lastLocation.chapter) > 0);
+
 const state = {
-  book: "Jhn",
-  chapter: 1,
+  book: hasValidLastLocation ? lastLocation.book : "Psa",
+  chapter: hasValidLastLocation ? Number(lastLocation.chapter) : 1,
   settings: JSON.parse(localStorage.getItem("bibleAppSettings") || "{}"),
 };
 
@@ -332,6 +340,7 @@ function syncQuickVersionSelect() {
 async function navigateTo(book, chapter) {
   state.book = book;
   state.chapter = chapter;
+  localStorage.setItem(LAST_LOCATION_KEY, JSON.stringify({ book, chapter }));
   populateChapterSelect();
   document.getElementById("bookSelect").value = book;
   document.getElementById("chapterSelect").value = chapter;

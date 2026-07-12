@@ -1586,8 +1586,12 @@ function buildCopyPayload(fromVerse, toVerse, opts) {
     const mapId = window.BOOK_MAP_ID && window.BOOK_MAP_ID[state.book];
     const map = mapId && window.BIBLE_MAPS.find((m) => m.id === mapId);
     if (map) {
-      plain += `\nMap: ${map.title} (${map.era})\n${map.description}\nSource: ${map.sourceUrl}\n`;
-      html += `<h3>Map: ${escapeHtml(map.title)}</h3><p>${escapeHtml(map.description)}</p>` +
+      plain += `\nMap: ${map.title} (${map.era})\n${map.description}\n` +
+        (map.thumbUrl ? `Image: ${map.thumbUrl}\n` : "") +
+        `Source: ${map.sourceUrl}\n`;
+      html += `<h3>Map: ${escapeHtml(map.title)}</h3>` +
+        (map.thumbUrl ? `<p><img src="${map.thumbUrl}" alt="${escapeHtml(map.title)}" style="max-width:100%;height:auto;"></p>` : "") +
+        `<p>${escapeHtml(map.description)}</p>` +
         `<p><a href="${map.sourceUrl}">${escapeHtml(map.sourceUrl)}</a></p>`;
     }
   }
@@ -1606,8 +1610,15 @@ function buildCopyPayload(fromVerse, toVerse, opts) {
       plain += `\nBiblical Discoveries:\n`;
       html += `<h3>Biblical Discoveries</h3>`;
       for (const a of found) {
-        plain += `- ${a.title}: ${a.description}\n`;
-        html += `<p><strong>${escapeHtml(a.title)}</strong>: ${escapeHtml(a.description)}</p>`;
+        const link = a.sourceUrl || (a.wiki ? "https://en.wikipedia.org/wiki/" + encodeURIComponent(a.wiki.replace(/ /g, "_")) : "");
+        plain += `- ${a.title}: ${a.description}\n` +
+          (a.photo ? `  Image: ${a.photo}\n` : "") +
+          (link ? `  Source: ${link}\n` : "");
+        html += `<div>` +
+          (a.photo ? `<p><img src="${a.photo}" alt="${escapeHtml(a.title)}" style="max-width:100%;height:auto;"></p>` : "") +
+          `<p><strong>${escapeHtml(a.title)}</strong>: ${escapeHtml(a.description)}</p>` +
+          (link ? `<p><a href="${link}">${escapeHtml(link)}</a></p>` : "") +
+          `</div>`;
       }
     }
   }

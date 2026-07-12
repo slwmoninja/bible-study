@@ -569,6 +569,42 @@ main#content {
 }
 .artifact-verse-link:hover { background: var(--gold-bright); }
 
+.artifact-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-bottom: 0.6rem;
+}
+.artifact-nav-btn {
+  font-family: inherit;
+  border: 1px solid var(--gold-bright);
+  background: var(--gold);
+  color: var(--maroon-dark);
+  font-weight: bold;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+.artifact-nav-btn:hover { background: var(--gold-bright); }
+.artifact-nav-count { font-size: 0.8rem; color: var(--ink-soft); min-width: 3.5rem; text-align: center; }
+
+.artifact-icon {
+  flex-shrink: 0;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.1rem;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2));
+}
+.artifact-icon:hover { transform: scale(1.15); }
+
 .places-panel {
   margin-top: 2rem;
   padding-top: 1rem;
@@ -884,6 +920,20 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
 #downloadAllBtn:hover { background: var(--gold-bright); }
 #downloadAllBtn:disabled { opacity: 0.6; cursor: wait; }
 #downloadProgress:empty { display: none; }
+
+#copyToClipboardBtn {
+  font-family: inherit;
+  border: 1px solid var(--gold);
+  background: var(--gold);
+  color: var(--maroon-dark);
+  font-weight: bold;
+  border-radius: 4px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+}
+#copyToClipboardBtn:hover { background: var(--gold-bright); }
+#copyToClipboardBtn:disabled { opacity: 0.6; cursor: wait; }
+.copy-range-row select { font-family: inherit; }
 
 /* ---------- Responsive ---------- */
 

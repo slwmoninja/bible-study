@@ -11,10 +11,11 @@ const Loader = (() => {
   const loaded = new Set();
   const inflight = new Map();
 
-  function loadScript(src) {
+  function loadScript(src, { minimal = false } = {}) {
     if (loaded.has(src)) return Promise.resolve();
     if (typeof getAppSettings === "function") {
-      const { allowed } = NetworkGuard.checkAllowed(getAppSettings());
+      const settings = getAppSettings();
+      const { allowed } = minimal ? NetworkGuard.checkAllowedMinimal(settings) : NetworkGuard.checkAllowed(settings);
       if (!allowed) return Promise.reject(new WifiRequiredError());
     }
     if (inflight.has(src)) return inflight.get(src);
@@ -37,21 +38,21 @@ const Loader = (() => {
   }
 
   return {
-    english(version) {
+    english(version, opts) {
       if (window.BIBLE_TEXT && window.BIBLE_TEXT[version]) return Promise.resolve();
-      return loadScript(`data/processed/english/${version}.js`);
+      return loadScript(`data/processed/english/${version}.js`, opts);
     },
-    interlinear(bookAbbr) {
+    interlinear(bookAbbr, opts) {
       if (window.INTERLINEAR && window.INTERLINEAR[bookAbbr]) return Promise.resolve();
-      return loadScript(`data/processed/books/${bookAbbr}.js`);
+      return loadScript(`data/processed/books/${bookAbbr}.js`, opts);
     },
-    lexicon() {
+    lexicon(opts) {
       if (window.LEXICON) return Promise.resolve();
-      return loadScript("data/processed/lexicon.js");
+      return loadScript("data/processed/lexicon.js", opts);
     },
-    morphology() {
+    morphology(opts) {
       if (window.MORPH_CODES) return Promise.resolve();
-      return loadScript("data/processed/morphology.js");
+      return loadScript("data/processed/morphology.js", opts);
     },
     searchIndex() {
       if (window.SEARCH_INDEX) return Promise.resolve();

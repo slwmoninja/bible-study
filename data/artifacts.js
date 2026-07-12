@@ -324,11 +324,204 @@ window.ARTIFACTS = [
     wiki: "Sergius Paulus",
     verses: [["Act", 13, 7]],
   },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/TR_Colossae_site_asv2020-02_img08.jpg/330px-TR_Colossae_site_asv2020-02_img08.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:TR_Colossae_site_asv2020-02_img08.jpg",
+    title: "Colossae",
+    description: "The largely unexcavated ruins of a Phrygian city in Turkey's Lycus Valley, addressed by Paul's letter to the Colossians. Excavations begun in 2025 have so far uncovered Roman-period tombs, with hopes of eventually finding traces of the city's early Christian community.",
+    wiki: "Colossae",
+    sourceUrl: "https://www.biblicalarchaeology.org/daily/archaeology-today/colossae-a-biblical-city-of-classical-world/",
+    verses: [["Col", 1, 2], ["Col", 4, 13]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Nazareth_Verk%C3%BCndigungbasilika_Church_of_Annunciation_%2834257296024%29.jpg/330px-Nazareth_Verk%C3%BCndigungbasilika_Church_of_Annunciation_%2834257296024%29.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Nazareth_Verk%C3%BCndigungbasilika_Church_of_Annunciation_(34257296024).jpg",
+    title: "Nazareth Village Remains",
+    description: "First-century house walls, oil presses, storage chambers, and silos excavated beneath the Basilica of the Annunciation in Nazareth — physical remains of the modest Galilean village where Jesus grew up.",
+    wiki: "Basilica of the Annunciation",
+    sourceUrl: "https://www.biblicalarchaeology.org/daily/biblical-sites-places/exploring-jesuss-hometown/",
+    verses: [["Luk", 1, 26], ["Luk", 2, 39]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Asiatic_official_Munich_01.JPG",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Asiatic_official_Munich_01.JPG",
+    title: "Asiatic Official of Avaris",
+    description: "A limestone statue head of a Semitic (\"Asiatic\") official from Avaris in Egypt's Nile Delta, dated to the Hyksos period — evidence that Canaanite outsiders could rise to positions of prominence in Egypt, the same world into which the biblical Joseph was sold.",
+    wiki: "Avaris",
+    sourceUrl: "https://www.biblicalarchaeology.org/daily/ancient-cultures/ancient-egypt/imagining-joseph-in-egypt/",
+    verses: [["Gen", 45, 18], ["Exo", 1, 8]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/a/ab/SaltPillarDeadSea.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:SaltPillarDeadSea.jpg",
+    title: "Zoar and the Cave of Lot",
+    description: "Excavations at Ghor al-Safi in Jordan, identified with the biblical Zoar, uncovered a Byzantine sanctuary built over a cave venerated as the refuge of Lot and his daughters — near this rock formation traditionally associated with Lot's wife.",
+    wiki: "Deir 'Ain 'Abata",
+    sourceUrl: "https://www.biblicalarchaeology.org/daily/biblical-sites-places/biblical-archaeology-sites/the-land-of-lot/",
+    verses: [["Gen", 19, 20], ["Gen", 19, 26]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/The_Roman_forum.jpg/330px-The_Roman_forum.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:The_Roman_forum.jpg",
+    title: "Roman Forum of Thessalonica",
+    description: "The excavated forum (agora) of ancient Thessalonica, with remains uncovered during construction of the city's metro system spanning the Hellenistic through Byzantine eras — the public square where Paul's preaching stirred an uproar during his mission to the city.",
+    wiki: "Roman Forum (Thessaloniki)",
+    sourceUrl: "https://www.biblicalarchaeology.org/daily/biblical-sites-places/underground-thessalonica/",
+    verses: [["Act", 17, 5], ["Act", 17, 10]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/2/20/Cerro_del_Villar.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Cerro_del_Villar.jpg",
+    title: "Cerro del Villar",
+    description: "A Phoenician trading settlement near Málaga, Spain, dating to the 8th–6th centuries BC, with residential and industrial quarters tied into Mediterranean metal-trade routes — a candidate site for the distant \"Tarshish\" of Phoenician and biblical sea trade.",
+    wiki: "Cerro del Villar",
+    sourceUrl: "https://www.biblicalarchaeology.org/daily/ancient-cultures/the-mediterraneans-master-traders/",
+    verses: [["Jon", 1, 3], ["1Ki", 10, 22]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Westernwall2.jpg/330px-Westernwall2.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Westernwall2.jpg",
+    title: "Western Wall",
+    description: "The last standing retaining wall of the Second Temple's platform in Jerusalem, where pilgrims have gathered to pray for centuries — a physical remnant of the temple complex Jesus predicted would be thrown down.",
+    wiki: "Western Wall",
+    sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/2/",
+    verses: [["Mrk", 13, 1], ["Psa", 122, 1]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Church_of_the_Holy_Sepulchre_by_Gerd_Eichmann_%28cropped%29.jpg/330px-Church_of_the_Holy_Sepulchre_by_Gerd_Eichmann_%28cropped%29.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Church_of_the_Holy_Sepulchre_by_Gerd_Eichmann_(cropped).jpg",
+    title: "Church of the Holy Sepulchre",
+    description: "A Jerusalem church built over the traditional sites of Golgotha and Jesus's tomb, venerated by pilgrims for nearly two thousand years as the location of the crucifixion and resurrection.",
+    wiki: "Church of the Holy Sepulchre",
+    sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/3/",
+    verses: [["Jhn", 19, 41], ["Luk", 24, 6]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Mount_Sinai_from_the_southwest.jpg/330px-Mount_Sinai_from_the_southwest.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Mount_Sinai_from_the_southwest.jpg",
+    title: "Mount Sinai",
+    description: "The mountain in the Sinai Peninsula traditionally identified as the site where Moses received the Ten Commandments and the covenant law.",
+    wiki: "Mount Sinai",
+    sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/4/",
+    verses: [["Exo", 19, 20], ["Exo", 20, 1]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Church_of_the_Nativity_%287703592746%29.jpg/330px-Church_of_the_Nativity_%287703592746%29.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Church_of_the_Nativity_(7703592746).jpg",
+    title: "Church of the Nativity",
+    description: "A basilica in Bethlehem built over the grotto traditionally venerated as the birthplace of Jesus, among the oldest continuously operating churches in the world.",
+    wiki: "Church of the Nativity",
+    sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/5/",
+    verses: [["Luk", 2, 4], ["Mic", 5, 2]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Kinneret_cropped.jpg/330px-Kinneret_cropped.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Kinneret_cropped.jpg",
+    title: "Sea of Galilee",
+    description: "The freshwater lake in northern Israel that formed the backdrop for much of Jesus's ministry, including the calming of the storm and the miraculous catch of fish.",
+    wiki: "Sea of Galilee",
+    sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/7/",
+    verses: [["Mat", 8, 24], ["Luk", 5, 4]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Dead_Sea_beach_00.JPG/330px-Dead_Sea_beach_00.JPG",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Dead_Sea_beach_00.JPG",
+    title: "Dead Sea",
+    description: "The hypersaline lake at the lowest point on Earth's land surface, called the Salt Sea in the Old Testament, marking the southern boundary of the land promised to Israel.",
+    wiki: "Dead Sea",
+    sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/8/",
+    verses: [["Gen", 14, 3], ["Ezk", 47, 8]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/2013-Aerial-Mount_of_Olives.jpg/330px-2013-Aerial-Mount_of_Olives.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:2013-Aerial-Mount_of_Olives.jpg",
+    title: "Mount of Olives",
+    description: "The ridge east of Jerusalem's Old City where Jesus wept over the city and taught his disciples, and from which, according to the Gospels and Acts, he ascended into heaven.",
+    wiki: "Mount of Olives",
+    sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/10/",
+    verses: [["Act", 1, 9], ["Zec", 14, 4]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Jericho_cityscape_from_wall_ruins.jpg/330px-Jericho_cityscape_from_wall_ruins.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Jericho_cityscape_from_wall_ruins.jpg",
+    title: "Jericho",
+    description: "One of the oldest continuously inhabited cities in the world, remembered in the book of Joshua as the fortified city whose walls fell after the Israelites marched around it for seven days.",
+    wiki: "Jericho",
+    sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/12/",
+    verses: [["Jos", 6, 20]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Treasury_petra_crop.jpeg/330px-Treasury_petra_crop.jpeg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Treasury_petra_crop.jpeg",
+    title: "Petra",
+    description: "A Nabataean city in Jordan carved into rose-red sandstone cliffs, often identified with the biblical Sela, the rock-cut stronghold of Edom.",
+    wiki: "Petra",
+    sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/13/",
+    verses: [["Oba", 1, 3], ["2Ki", 14, 7]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Jerusalem-2013%282%29-Aerial-Temple_Mount-%28south_exposure%29.jpg/330px-Jerusalem-2013%282%29-Aerial-Temple_Mount-%28south_exposure%29.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Jerusalem-2013(2)-Aerial-Temple_Mount-(south_exposure).jpg",
+    title: "Temple Mount",
+    description: "The elevated platform in Jerusalem's Old City that once held Solomon's Temple and later Herod's Temple; today it is home to the Dome of the Rock and al-Aqsa Mosque.",
+    wiki: "Temple Mount",
+    sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/15/",
+    verses: [["1Ki", 6, 1], ["2Ch", 3, 1]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Mount_Nebo_BW_6.JPG/330px-Mount_Nebo_BW_6.JPG",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Mount_Nebo_BW_6.JPG",
+    title: "Mount Nebo",
+    description: "The mountain in modern Jordan traditionally identified as the place where Moses viewed the Promised Land before his death, its summit marked today by a memorial church.",
+    wiki: "Mount Nebo",
+    sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/16/",
+    verses: [["Deu", 34, 1], ["Deu", 34, 4]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Hebron_Cave_of_the_Patriarchs.jpg/330px-Hebron_Cave_of_the_Patriarchs.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Hebron_Cave_of_the_Patriarchs.jpg",
+    title: "Cave of the Patriarchs",
+    description: "An ancient enclosure in Hebron built over the cave traditionally believed to hold the tombs of Abraham, Sarah, Isaac, Rebekah, Jacob, and Leah — the burial field Abraham purchased from Ephron the Hittite.",
+    wiki: "Cave of the Patriarchs",
+    sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/18/",
+    verses: [["Gen", 23, 19], ["Gen", 49, 31]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/20100923_mer_morte13.JPG/330px-20100923_mer_morte13.JPG",
+    photoSource: "https://commons.wikimedia.org/wiki/File:20100923_mer_morte13.JPG",
+    title: "Jordan River",
+    description: "The river running through the Jordan Rift Valley, crossed by the Israelites entering the Promised Land and, centuries later, the site of Jesus's baptism by John.",
+    wiki: "Jordan River",
+    sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/19/",
+    verses: [["Jos", 3, 17], ["Mat", 3, 13]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Jerusalem_Gethsemane_tango7174.jpg/330px-Jerusalem_Gethsemane_tango7174.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Jerusalem_Gethsemane_tango7174.jpg",
+    title: "Garden of Gethsemane",
+    description: "An olive grove at the foot of the Mount of Olives, home to trees over a thousand years old, traditionally venerated as the place where Jesus prayed in anguish the night before his crucifixion.",
+    wiki: "Garden of Gethsemane",
+    sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/20/",
+    verses: [["Mat", 26, 36]],
+  },
 ];
 
-function todaysArtifact() {
+function todaysArtifactIndex() {
   const now = new Date();
   const start = new Date(now.getFullYear(), 0, 0);
   const dayOfYear = Math.floor((now - start) / 86400000);
-  return window.ARTIFACTS[dayOfYear % window.ARTIFACTS.length];
+  return dayOfYear % window.ARTIFACTS.length;
+}
+
+function todaysArtifact() {
+  return window.ARTIFACTS[todaysArtifactIndex()];
+}
+
+// Index of the first artifact whose verse list includes this exact book/chapter/verse,
+// or -1 if none. Used to show a jump-to-discovery icon next to matching verses.
+function findArtifactIndex(book, chapter, verse) {
+  const ch = Number(chapter);
+  const vs = Number(verse);
+  return window.ARTIFACTS.findIndex((a) =>
+    a.verses.some(([b, c, v]) => b === book && c === ch && v === vs));
 }

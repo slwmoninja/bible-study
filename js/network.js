@@ -34,5 +34,15 @@ const NetworkGuard = (() => {
     return { allowed: true, reason: null };
   }
 
-  return { getConnection, canDetectType, isOnWifi, checkAllowed };
+  // Same as checkAllowed(), except the "minimalOffWifi" setting lets it through
+  // regardless of connection type. Reserved for the handful of loads that make up
+  // the book/chapter currently on screen (its English text and, if toggled on, its
+  // original-language text) -- not for bulk/background loads like search indexing,
+  // commentary, or the "download entire Bible" button, which stay behind checkAllowed().
+  function checkAllowedMinimal(settings) {
+    if (settings.minimalOffWifi) return { allowed: true, reason: null };
+    return checkAllowed(settings);
+  }
+
+  return { getConnection, canDetectType, isOnWifi, checkAllowed, checkAllowedMinimal };
 })();

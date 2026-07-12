@@ -15,6 +15,7 @@ function withDefault(key, value) {
   if (state.settings[key] === undefined) state.settings[key] = value;
 }
 withDefault("wifiOnly", true); // only fetch data on Wi-Fi by default
+withDefault("minimalOffWifi", true); // let the current book/chapter's text through the Wi-Fi gate
 withDefault("onlineEnabled", false); // master switch revealing online-version toggles
 withDefault("versions", {});
 withDefault("youversionApiKey", "");
@@ -352,7 +353,7 @@ async function getChapterTexts() {
       } else if (isOnlineVersion(id)) {
         results[id] = await OnlineBible.fetchChapter(id, meta.n, state.chapter);
       } else {
-        await Loader.english(id);
+        await Loader.english(id, { minimal: true });
         results[id] = (window.BIBLE_TEXT[id][state.book] || {})[String(state.chapter)] || {};
       }
     } catch (e) {
@@ -380,12 +381,19 @@ async function renderChapter() {
 
   const commentaryIds = activeCommentaryIds();
 
+  // Interlinear/lexicon/morphology/commentary are side-effect loads (they populate
+  // window.INTERLINEAR etc. for renderWordBox()/showCommentaryModal() to read) --
+  // unlike getChapterTexts(), a blocked or failed one here shouldn't crash the whole
+  // render, just leave that feature unavailable for this chapter.
   const promises = [getChapterTexts()];
   if (showInterlinear) {
-    promises.push(Loader.interlinear(state.book), Loader.lexicon(), Loader.morphology());
+    promises.push(
+      Loader.interlinear(state.book, { minimal: true }).catch(() => {}),
+      Loader.lexicon({ minimal: true }).catch(() => {}),
+      Loader.morphology({ minimal: true }).catch(() => {}));
   }
   for (const id of commentaryIds) {
-    promises.push(Loader.commentary(id, state.book));
+    promises.push(Loader.commentary(id, state.book).catch(() => {}));
   }
   const [{ versionIds, texts, errors }] = await Promise.all(promises);
 
@@ -471,6 +479,17 @@ async function renderChapter() {
         </button>`
       : "";
 
+    const artifactIdx = findArtifactIndex(state.book, state.chapter, vn);
+    const artifactHtml = artifactIdx !== -1
+      ? `<button class="artifact-icon" data-index="${artifactIdx}" title="Related archaeological discovery">
+          <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="14" rx="2" fill="#e8dcc0" stroke="#000" stroke-width="1.3"/>
+            <circle cx="8" cy="10" r="2" fill="#ffd400" stroke="#000" stroke-width="1"/>
+            <path d="M3,17 L9,11 L13,15 L17,11 L21,15 L21,19 L3,19 Z" fill="#8a6d3b" stroke="#000" stroke-width="1"/>
+          </svg>
+        </button>`
+      : "";
+
     const hasNotes = Notes.hasNotes(state.book, state.chapter, vn);
     versesHtml += `
       <div class="verse" data-book="${state.book}" data-chapter="${state.chapter}" data-verse="${vn}" title="Double-click/double-tap to add a note">
@@ -479,6 +498,7 @@ async function renderChapter() {
           <div class="verse-versions">${versionLines}</div>
           ${noteIconHtml(state.book, state.chapter, vn)}
           ${commentaryHtml}
+          ${artifactHtml}
         </div>
         ${interlinearHtml}
       </div>`;
@@ -509,6 +529,7 @@ async function renderChapter() {
   }
   attachWordHandlers();
   attachCommentaryHandlers();
+  attachArtifactIconHandlers();
   attachAttributionHandlers();
   attachBookMapIconHandlers();
   populateVerseSelect(verseNums);
@@ -521,6 +542,12 @@ function attachCommentaryHandlers() {
       const { book, chapter, verse } = el.dataset;
       showCommentaryModal(book, chapter, verse);
     });
+  });
+}
+
+function attachArtifactIconHandlers() {
+  document.querySelectorAll(".artifact-icon").forEach((el) => {
+    el.addEventListener("click", () => showArtifactAt(Number(el.dataset.index)));
   });
 }
 
@@ -587,9 +614,25 @@ function attachBookMapIconHandlers() {
 
 // ---------- Something cool (daily artifact) ----------
 
+let currentArtifactIndex = 0;
+
 function showTodaysArtifact() {
-  const a = todaysArtifact();
-  const wikiUrl = "https://en.wikipedia.org/wiki/" + encodeURIComponent(a.wiki.replace(/ /g, "_"));
+  showArtifactAt(todaysArtifactIndex());
+}
+
+function showArtifactAt(index) {
+  const list = window.ARTIFACTS;
+  currentArtifactIndex = ((index % list.length) + list.length) % list.length;
+  const a = list[currentArtifactIndex];
+
+  const wikiUrl = a.wiki
+    ? "https://en.wikipedia.org/wiki/" + encodeURIComponent(a.wiki.replace(/ /g, "_"))
+    : null;
+  // BAS entries link out to the source article first; the Wikipedia link (if any)
+  // is offered as a secondary line rather than being replaced outright.
+  const primaryUrl = a.sourceUrl || wikiUrl;
+  const primaryTitle = a.sourceUrl ? "Read more at Biblical Archaeology Society" : "Read more on Wikipedia";
+
   const verseLinks = a.verses.map(([book, ch, vs]) => {
     const meta = bookMeta(book);
     const label = meta ? `${meta.n} ${ch}:${vs}` : `${book} ${ch}:${vs}`;
@@ -597,18 +640,31 @@ function showTodaysArtifact() {
   }).join("");
 
   const photoHtml = a.photo
-    ? `<a class="artifact-photo" href="${wikiUrl}" target="_blank" rel="noopener" title="Read more on Wikipedia">
+    ? `<a class="artifact-photo" href="${primaryUrl}" target="_blank" rel="noopener" title="${primaryTitle}">
          <img src="${a.photo}" alt="${escapeHtml(a.title)}" loading="lazy">
        </a>`
     : "";
 
+  const secondaryLinkHtml = a.sourceUrl && wikiUrl
+    ? `<p class="settings-note"><a href="${wikiUrl}" target="_blank" rel="noopener">More on Wikipedia</a></p>`
+    : "";
+
   const body = document.getElementById("artifactModalBody");
   body.innerHTML = `
+    <div class="artifact-nav">
+      <button class="artifact-nav-btn artifact-prev" title="Previous discovery" aria-label="Previous discovery">&#8249;</button>
+      <span class="artifact-nav-count">${currentArtifactIndex + 1} / ${list.length}</span>
+      <button class="artifact-nav-btn artifact-next" title="Next discovery" aria-label="Next discovery">&#8250;</button>
+    </div>
     ${photoHtml}
     <h3>${escapeHtml(a.title)}</h3>
     <p>${escapeHtml(a.description)}</p>
+    ${secondaryLinkHtml}
     <p class="settings-note">Related passages:</p>
     <div class="artifact-verses">${verseLinks}</div>`;
+
+  body.querySelector(".artifact-prev").addEventListener("click", () => showArtifactAt(currentArtifactIndex - 1));
+  body.querySelector(".artifact-next").addEventListener("click", () => showArtifactAt(currentArtifactIndex + 1));
 
   body.querySelectorAll(".artifact-verse-link").forEach((btn) => {
     btn.addEventListener("click", async () => {
@@ -621,7 +677,8 @@ function showTodaysArtifact() {
     });
   });
 
-  openModal(document.getElementById("artifactModal"));
+  const modal = document.getElementById("artifactModal");
+  if (!modal.open) openModal(modal);
 }
 
 function populateVerseSelect(verseNums) {
@@ -854,7 +911,7 @@ function attachNoteDropHandlers() {
 function attachNoteDblClickHandlers() {
   document.querySelectorAll(".verse").forEach((el) => {
     el.addEventListener("dblclick", (e) => {
-      if (e.target.closest(".interlinear-row") || e.target.closest(".commentary-icon") || e.target.closest(".note-icon")) return; // let those clicks be, don't also open notes
+      if (e.target.closest(".interlinear-row") || e.target.closest(".commentary-icon") || e.target.closest(".note-icon") || e.target.closest(".artifact-icon")) return; // let those clicks be, don't also open notes
       const { book, chapter, verse } = el.dataset;
       showNotesPanel(book, chapter, verse);
     });
@@ -1445,6 +1502,190 @@ function initDownloadControls() {
   });
 }
 
+// ---------- Copy to clipboard ----------
+
+function htmlToText(html) {
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div.textContent.replace(/\s+/g, " ").trim();
+}
+
+// Builds both a plain-text and an HTML rendering of the same verse range/options,
+// so the clipboard write below can offer Word (HTML) and Notepad (plain text) each
+// the flavor they actually use. Base verse text and word-level Greek/Hebrew are read
+// straight from window.BIBLE_TEXT/INTERLINEAR rather than the DOM, so this also works
+// for a verse range wider than what's currently on screen or with the interlinear
+// toggle off in Settings.
+function buildCopyPayload(fromVerse, toVerse, opts) {
+  const meta = bookMeta(state.book);
+  const chapterLabel = fromVerse === toVerse
+    ? `${meta.n} ${state.chapter}:${fromVerse}`
+    : `${meta.n} ${state.chapter}:${fromVerse}-${toVerse}`;
+
+  let plain = `${chapterLabel}\n\n`;
+  let html = `<h2>${escapeHtml(chapterLabel)}</h2>`;
+
+  const verseNums = [...document.querySelectorAll("#verseSelect option")]
+    .map((o) => Number(o.value))
+    .filter((vn) => vn >= fromVerse && vn <= toVerse)
+    .sort((a, b) => a - b);
+
+  const interlinearData = ((window.INTERLINEAR || {})[state.book] || {})[String(state.chapter)] || {};
+  const activeCIds = activeCommentaryIds();
+
+  for (const vn of verseNums) {
+    const verseEl = document.querySelector(`.verse[data-book="${state.book}"][data-chapter="${state.chapter}"][data-verse="${vn}"]`);
+    const baseText = verseEl
+      ? [...verseEl.querySelectorAll(".verse-versions .verse-text")].map((el) => el.textContent.trim()).filter(Boolean).join(" ")
+      : "";
+    plain += `${vn} ${baseText}\n`;
+    html += `<p><strong>${vn}</strong> ${escapeHtml(baseText)}</p>`;
+
+    if (opts.originalLanguage) {
+      const words = interlinearData[vn];
+      if (words && words.length) {
+        const orig = words.map((w) => w.t).join(" ");
+        const translit = words.map((w) => w.tr).join(" ");
+        const gloss = words.map((w) => w.en).join(" ");
+        plain += `   ${orig}\n   (${translit})\n   ${gloss}\n`;
+        html += `<p style="margin-left:1.5em;color:#555;">${escapeHtml(orig)}<br><em>${escapeHtml(translit)}</em><br>${escapeHtml(gloss)}</p>`;
+      }
+    }
+
+    if (opts.commentary) {
+      for (const id of activeCIds) {
+        const entryHtml = (((window.COMMENTARY[id] || {})[state.book] || {})[String(state.chapter)] || {})[vn];
+        if (entryHtml) {
+          plain += `   [${COMMENTARY_SOURCES[id]}] ${htmlToText(entryHtml)}\n`;
+          html += `<p style="margin-left:1.5em;"><em>${escapeHtml(COMMENTARY_SOURCES[id])}:</em> ${entryHtml}</p>`;
+        }
+      }
+    }
+    plain += "\n";
+  }
+
+  if (opts.maps) {
+    const mapId = window.BOOK_MAP_ID && window.BOOK_MAP_ID[state.book];
+    const map = mapId && window.BIBLE_MAPS.find((m) => m.id === mapId);
+    if (map) {
+      plain += `\nMap: ${map.title} (${map.era})\n${map.description}\nSource: ${map.sourceUrl}\n`;
+      html += `<h3>Map: ${escapeHtml(map.title)}</h3><p>${escapeHtml(map.description)}</p>` +
+        `<p><a href="${map.sourceUrl}">${escapeHtml(map.sourceUrl)}</a></p>`;
+    }
+  }
+
+  if (opts.discoveries) {
+    const seen = new Set();
+    const found = [];
+    for (const vn of verseNums) {
+      const idx = findArtifactIndex(state.book, state.chapter, vn);
+      if (idx !== -1 && !seen.has(idx)) {
+        seen.add(idx);
+        found.push(window.ARTIFACTS[idx]);
+      }
+    }
+    if (found.length) {
+      plain += `\nBiblical Discoveries:\n`;
+      html += `<h3>Biblical Discoveries</h3>`;
+      for (const a of found) {
+        plain += `- ${a.title}: ${a.description}\n`;
+        html += `<p><strong>${escapeHtml(a.title)}</strong>: ${escapeHtml(a.description)}</p>`;
+      }
+    }
+  }
+
+  return { plain: plain.trim(), html };
+}
+
+// Writes both flavors so the paste target picks whichever it understands: Word (and
+// other rich-text apps) take the HTML flavor with formatting intact, while Notepad
+// (and anything else that only reads plain text) falls back to the text/plain flavor
+// automatically -- neither app needs special-casing here.
+async function copyToClipboard(html, plain) {
+  if (navigator.clipboard && typeof ClipboardItem !== "undefined") {
+    try {
+      const item = new ClipboardItem({
+        "text/plain": new Blob([plain], { type: "text/plain" }),
+        "text/html": new Blob([html], { type: "text/html" }),
+      });
+      await navigator.clipboard.write([item]);
+      return true;
+    } catch (e) {
+      // Fall through to the plain-text-only path below (older/locked-down browsers).
+    }
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(plain);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  return false;
+}
+
+function showCopyModal() {
+  const verseNums = [...document.querySelectorAll("#verseSelect option")].map((o) => Number(o.value)).sort((a, b) => a - b);
+  const options = verseNums.map((vn) => `<option value="${vn}">${vn}</option>`).join("");
+  const fromSel = document.getElementById("copyFromVerse");
+  const toSel = document.getElementById("copyToVerse");
+  fromSel.innerHTML = options;
+  toSel.innerHTML = options;
+  fromSel.value = verseNums[0];
+  toSel.value = verseNums[verseNums.length - 1];
+  document.getElementById("copyStatus").textContent = "";
+  openModal(document.getElementById("copyModal"));
+}
+
+function initCopyControls() {
+  document.getElementById("copyIconBtn").addEventListener("click", showCopyModal);
+
+  const fromSel = document.getElementById("copyFromVerse");
+  const toSel = document.getElementById("copyToVerse");
+  fromSel.addEventListener("change", () => {
+    if (Number(fromSel.value) > Number(toSel.value)) toSel.value = fromSel.value;
+  });
+  toSel.addEventListener("change", () => {
+    if (Number(toSel.value) < Number(fromSel.value)) fromSel.value = toSel.value;
+  });
+
+  document.getElementById("copyToClipboardBtn").addEventListener("click", async () => {
+    const btn = document.getElementById("copyToClipboardBtn");
+    const status = document.getElementById("copyStatus");
+    const opts = {
+      originalLanguage: document.getElementById("copyOriginalLanguage").checked,
+      commentary: document.getElementById("copyCommentary").checked,
+      maps: document.getElementById("copyMaps").checked,
+      discoveries: document.getElementById("copyDiscoveries").checked,
+    };
+
+    btn.disabled = true;
+    status.textContent = "Preparing…";
+    try {
+      if (opts.originalLanguage && window.INTERLINEAR_AVAILABLE.has(state.book)) {
+        await Loader.interlinear(state.book, { minimal: true });
+      }
+      if (opts.commentary) {
+        await Promise.all(activeCommentaryIds().map((id) => Loader.commentary(id, state.book)));
+      }
+    } catch (e) {
+      status.textContent = e instanceof WifiRequiredError
+        ? "Blocked: \"Wi-Fi only\" is on and this device isn't on Wi-Fi."
+        : `Couldn't load some content: ${e.message}`;
+      btn.disabled = false;
+      return;
+    }
+
+    const from = Number(document.getElementById("copyFromVerse").value);
+    const to = Number(document.getElementById("copyToVerse").value);
+    const { plain, html } = buildCopyPayload(from, to, opts);
+    const ok = await copyToClipboard(html, plain);
+    status.textContent = ok ? "Copied!" : "Couldn't access the clipboard in this browser.";
+    btn.disabled = false;
+  });
+}
+
 // ---------- Wiring ----------
 
 // Checkbox settings that just flip a boolean and re-render the chapter.
@@ -1529,12 +1770,19 @@ function initUI() {
     state.settings.wifiOnly = wifiToggle.checked;
     saveSettings();
   });
+  const minimalOffWifiToggle = document.getElementById("minimalOffWifiToggle");
+  minimalOffWifiToggle.checked = state.settings.minimalOffWifi;
+  minimalOffWifiToggle.addEventListener("change", () => {
+    state.settings.minimalOffWifi = minimalOffWifiToggle.checked;
+    saveSettings();
+  });
   const wifiNote = document.getElementById("wifiDetectNote");
   wifiNote.textContent = NetworkGuard.canDetectType()
     ? ""
     : "Note: this browser can't report Wi-Fi vs. cellular, so downloads won't be blocked even with this on.";
 
   initDownloadControls();
+  initCopyControls();
 
   document.querySelectorAll("dialog .close-btn").forEach((btn) => {
     btn.addEventListener("click", () => {

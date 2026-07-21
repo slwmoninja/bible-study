@@ -9,7 +9,9 @@
  * 3. Click "Create a Worker"
  * 4. Delete all existing code in the editor and paste THIS entire file
  * 5. Click "Save and Deploy"
- * 6. Copy your Worker URL (looks like: https://bible-study.YOURNAME.workers.dev)
+ * 6. Copy your Worker URL (looks like: https://biblestudy.YOURNAME.workers.dev
+ *    — the exact subdomain matches whatever name you gave the Worker, so
+ *    double-check it against what's actually shown in the dashboard)
  *
  * ADD YOUR API KEY AS A SECRET:
  * 7. In the Worker dashboard → click "Settings" tab → "Variables and Secrets"
@@ -19,9 +21,8 @@
  * 9. Save (encrypted) and redeploy if prompted.
  *
  * PASTE YOUR WORKER URL INTO THE APP:
- * 10. Open js/youversion.js → update the WORKER_URL constant near the top to
- *     the URL from step 6 (only needed if you named your Worker something
- *     other than "bible-study" — the default already assumes that name).
+ * 10. Open js/youversion.js → update the WORKER_URL constant near the top if
+ *     your actual deployed URL (step 6) differs from what's already there.
  *     Done — NIV now works for every visitor with zero setup; the API key
  *     never reaches the browser.
  */
@@ -58,16 +59,23 @@ async function handlePassage(request, env, url) {
   }
   const bibleId = url.searchParams.get('bibleId') || '111';
 
-  const upstreamUrl = `https://api.youversion.com/v1/bibles/${encodeURIComponent(bibleId)}/passages/${encodeURIComponent(ref)}?format=html&include_headings=false&include_notes=false`;
-  const upstream = await fetch(upstreamUrl, {
-    headers: { 'X-YVP-App-Key': env.YOUVERSION_API_KEY }
-  });
-  const text = await upstream.text();
+  try {
+    const upstreamUrl = `https://api.youversion.com/v1/bibles/${encodeURIComponent(bibleId)}/passages/${encodeURIComponent(ref)}?format=html&include_headings=false&include_notes=false`;
+    const upstream = await fetch(upstreamUrl, {
+      headers: { 'X-YVP-App-Key': env.YOUVERSION_API_KEY }
+    });
+    const text = await upstream.text();
 
-  return new Response(text, {
-    status: upstream.status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders() }
-  });
+    return new Response(text, {
+      status: upstream.status,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders() }
+    });
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ error: { message: err.message || 'Worker error fetching from YouVersion.' } }),
+      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders() } }
+    );
+  }
 }
 
 export default {

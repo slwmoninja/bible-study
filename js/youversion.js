@@ -24,7 +24,7 @@
 const YouVersionBible = (() => {
   // Update this if the Worker is ever deployed under a different name/account
   // -- see BibleStudy-Worker.js's setup instructions.
-  const WORKER_URL = "https://bible-study.rfwrites2.workers.dev";
+  const WORKER_URL = "https://biblestudy.rfwrites2.workers.dev";
   const cache = new Map(); // "BOOK.chapter" -> {verse: text}
 
   function stripTags(fragment) {

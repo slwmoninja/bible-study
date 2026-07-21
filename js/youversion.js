@@ -1,8 +1,8 @@
 // YouVersion Platform API (https://platform.youversion.com) -- the app's
-// primary/default Bible version. Requires a free personal API key from a
-// YouVersion Platform developer account; the user pastes it into Settings
-// (signing up is a login/account step this app can't do on the user's
-// behalf). Nothing is fetched until a key is present.
+// primary/default Bible version (NIV). The API key lives server-side in a
+// Cloudflare Worker (see BibleStudy-Worker.js) and never reaches the browser
+// or this app's source -- every visitor gets NIV with zero setup, no key to
+// paste anywhere.
 //
 // Endpoint/header/format confirmed against a real API response during
 // integration (base URL, auth header name, passages endpoint, and the
@@ -22,13 +22,10 @@
 // service worker cache, matching how the app already treats other licensed
 // online translations in js/online.js.
 const YouVersionBible = (() => {
-  const API_BASE = "https://api.youversion.com/v1";
-  const cache = new Map(); // "bibleId:BOOK.chapter" -> {verse: text}
-
-  function config() {
-    const s = (typeof getAppSettings === "function" && getAppSettings()) || {};
-    return { apiKey: s.youversionApiKey || "", bibleId: s.youversionBibleId || "111" };
-  }
+  // Update this if the Worker is ever deployed under a different name/account
+  // -- see BibleStudy-Worker.js's setup instructions.
+  const WORKER_URL = "https://bible-study.rfwrites2.workers.dev";
+  const cache = new Map(); // "BOOK.chapter" -> {verse: text}
 
   function stripTags(fragment) {
     return fragment
@@ -71,10 +68,7 @@ const YouVersionBible = (() => {
   // uppercased, so `.toUpperCase()` is all the mapping YouVersion's USFM-style
   // book IDs need.
   async function fetchChapter(bookAbbr, chapter) {
-    const { apiKey, bibleId } = config();
-    if (!apiKey) throw new Error('Add your YouVersion Platform API key in Settings (get one free at platform.youversion.com) to read this version.');
-
-    const key = `${bibleId}:${bookAbbr.toUpperCase()}.${chapter}`;
+    const key = `${bookAbbr.toUpperCase()}.${chapter}`;
     if (cache.has(key)) return cache.get(key);
 
     if (typeof getAppSettings === "function") {
@@ -82,9 +76,8 @@ const YouVersionBible = (() => {
       if (!allowed) throw new WifiRequiredError();
     }
 
-    const ref = `${bookAbbr.toUpperCase()}.${chapter}`;
-    const url = `${API_BASE}/bibles/${encodeURIComponent(bibleId)}/passages/${encodeURIComponent(ref)}?format=html&include_headings=false&include_notes=false`;
-    const res = await fetchWithTimeout(url, { headers: { "X-YVP-App-Key": apiKey } });
+    const url = `${WORKER_URL}/passage?ref=${encodeURIComponent(key)}`;
+    const res = await fetchWithTimeout(url);
     if (!res.ok) throw new Error(`YouVersion fetch failed: ${res.status}`);
     const data = await res.json();
     const verses = parseChapterHtml(data.content || "");

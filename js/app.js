@@ -26,8 +26,6 @@ withDefault("wifiOnly", true); // only fetch data on Wi-Fi by default
 withDefault("minimalOffWifi", true); // let the current book/chapter's text through the Wi-Fi gate
 withDefault("onlineEnabled", false); // master switch revealing online-version toggles
 withDefault("versions", {});
-withDefault("youversionApiKey", "");
-withDefault("youversionBibleId", "111"); // NIV
 withDefault("showGreek", true);
 withDefault("showHebrew", true);
 withDefault("showStudyAids", true);
@@ -40,22 +38,22 @@ withDefault("deleteConfirmations", true);
 withDefault("commentaries", {});
 
 // Only one Bible version is ever active at a time (see selectSingleVersion).
-// ASV is the default -- it requires no API key, so the reader is never blank
-// on first load. NIV and every other version start off until picked.
-if (state.settings.versions[YOUVERSION_ID] === undefined) state.settings.versions[YOUVERSION_ID] = false;
+// NIV is the default -- it now requires no API key (the key is hidden
+// server-side in a Cloudflare Worker, see js/youversion.js), so it's the
+// primary version new readers see. ASV/KJV/YLT start off until picked.
+if (state.settings.versions[YOUVERSION_ID] === undefined) state.settings.versions[YOUVERSION_ID] = true;
 for (const id of LOCAL_VERSION_IDS) {
-  if (state.settings.versions[id] === undefined) state.settings.versions[id] = id === "ASV";
+  if (state.settings.versions[id] === undefined) state.settings.versions[id] = false;
 }
 
 // Migrate installs from before single-selection was enforced, where more
 // than one version could be active in parallel: collapse down to just one,
-// preferring NIV if it was on and already has a working key (so a user who
-// set NIV up isn't silently switched away from it), else the first other
-// active version, else ASV.
+// preferring NIV if it was on (it no longer needs a key to work), else the
+// first other active version, else ASV.
 {
   const activeKeys = Object.keys(state.settings.versions).filter((k) => state.settings.versions[k]);
   if (activeKeys.length > 1) {
-    const keep = (state.settings.versions[YOUVERSION_ID] && state.settings.youversionApiKey)
+    const keep = state.settings.versions[YOUVERSION_ID]
       ? YOUVERSION_ID
       : activeKeys.find((k) => k !== YOUVERSION_ID) || activeKeys[0];
     for (const k of Object.keys(state.settings.versions)) state.settings.versions[k] = k === keep;
@@ -92,28 +90,15 @@ function isOnlineVersion(id) {
   return !LOCAL_VERSION_IDS.includes(id);
 }
 
-// "111" is the well-known catalog ID for the NIV, the default Bible ID; any
-// other ID just shows the generic provider name since we don't have a
-// name lookup for YouVersion's full catalog.
 function versionTagLabel(id) {
-  if (id === YOUVERSION_ID) {
-    return (state.settings.youversionBibleId || "111") === "111" ? "NIV" : "YouVersion";
-  }
+  if (id === YOUVERSION_ID) return "NIV";
   return id.toUpperCase();
 }
 
 // Biblica requires this exact copyright line wherever NIV text is displayed
-// (confirmed by the user against YouVersion's own license terms). If the
-// Bible ID is changed away from the NIV default, that translation's own
-// copyright holder almost certainly has a different required notice we
-// don't have on file -- show a generic reminder instead of guessing text
-// that could be wrong for a translation we don't know.
+// (confirmed by the user against YouVersion's own license terms).
 function youVersionAttributionText() {
-  const bibleId = state.settings.youversionBibleId || "111";
-  if (bibleId === "111") {
-    return "Scripture quotations taken from The Holy Bible, New International Version® NIV® Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc.™ Used by permission. All rights reserved worldwide.";
-  }
-  return "This translation is provided via the YouVersion Platform API. Confirm and add its required copyright attribution (Settings → Bible versions).";
+  return "Scripture quotations taken from The Holy Bible, New International Version® NIV® Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc.™ Used by permission. All rights reserved worldwide.";
 }
 
 const STATIC_VERSION_ATTRIBUTIONS = {
@@ -220,75 +205,23 @@ function renderVersionToggles() {
   });
 }
 
-// Set by renderChapter() after each attempt to load YouVersion text, so the
-// Settings UI knows whether the current key (if any) is actually working.
-let youVersionHasError = false;
-
 // Per-version fetch errors from the most recent renderChapter() -- lets the
 // toolbar quick-select dropdown default to whichever active version actually
-// rendered (e.g. ASV) rather than always the first one turned on (e.g. NIV
-// before an API key is entered, which fails silently into the ASV fallback).
+// rendered (e.g. ASV) rather than always the first one turned on.
 let lastRenderErrors = {};
 
 // Keeps the Settings radio in sync when the version was selected some other
-// way (e.g. picked from the toolbar quick-select dropdown instead), and
-// keeps the key/Bible ID fields tucked away unless they're needed -- shown
-// only while the version is selected and there's no working key yet, so
-// Settings stays a single "NIV" radio once it's set up and working.
+// way (e.g. picked from the toolbar quick-select dropdown instead).
 function syncYouVersionToggleUI() {
   const toggle = document.getElementById("youversionToggle");
-  const fields = document.getElementById("youversionFields");
   toggle.checked = !!state.settings.versions[YOUVERSION_ID];
-  const needsAttention = !state.settings.youversionApiKey || youVersionHasError;
-  fields.classList.toggle("fields-hidden", !(toggle.checked && needsAttention));
 }
 
 function initYouVersionSettings() {
   const toggle = document.getElementById("youversionToggle");
-  const keyInput = document.getElementById("youversionApiKeyInput");
-  const bibleIdInput = document.getElementById("youversionBibleIdInput");
-
-  keyInput.value = state.settings.youversionApiKey;
-  bibleIdInput.value = state.settings.youversionBibleId;
   syncYouVersionToggleUI();
-
   toggle.addEventListener("change", () => {
     selectSingleVersion(YOUVERSION_ID);
-  });
-  // Save on every keystroke ("input"), not just on blur ("change") -- on
-  // mobile, closing the tab/app right after pasting a key can tear the page
-  // down before a blur ever fires, which would silently drop a change-only
-  // save and force the user to re-enter the key each time. The expensive
-  // re-render/network fetch still waits for "change" so we don't refetch on
-  // every keystroke.
-  keyInput.addEventListener("input", () => {
-    state.settings.youversionApiKey = keyInput.value.trim();
-    saveSettings();
-  });
-  keyInput.addEventListener("change", () => {
-    state.settings.youversionApiKey = keyInput.value.trim();
-    saveSettings();
-    // On mobile, pasting a key blurs the field (the keyboard's "Next" affordance),
-    // which used to just hop focus to the Bible ID field below and leave Settings
-    // sitting open. If the key actually works, close Settings instead so the user
-    // lands back on the chapter/verse they were reading, now in NIV.
-    renderChapter().then(() => {
-      if (!youVersionHasError) {
-        const modal = document.getElementById("settingsModal");
-        if (typeof modal.close === "function") modal.close();
-      }
-    });
-  });
-  bibleIdInput.addEventListener("input", () => {
-    state.settings.youversionBibleId = bibleIdInput.value.trim() || "111";
-    saveSettings();
-  });
-  bibleIdInput.addEventListener("change", () => {
-    state.settings.youversionBibleId = bibleIdInput.value.trim() || "111";
-    bibleIdInput.value = state.settings.youversionBibleId;
-    saveSettings();
-    populateQuickVersionSelect(); // dropdown label (e.g. "NIV") depends on the bible id
-    renderChapter();
   });
 }
 
@@ -415,11 +348,6 @@ async function renderChapter() {
     promises.push(Loader.commentary(id, state.book).catch((e) => ErrorLog.record(e.message, `commentary:${id}`)));
   }
   const [{ versionIds, texts, errors }] = await Promise.all(promises);
-
-  // Let Settings know whether YouVersion actually worked this render, so its
-  // key/Bible ID fields auto-reveal only when something needs fixing.
-  youVersionHasError = versionIds.includes(YOUVERSION_ID) && !!errors[YOUVERSION_ID];
-  if (document.getElementById("youversionToggle")) syncYouVersionToggleUI();
 
   // Keep the toolbar quick-select dropdown showing whichever version is
   // actually on screen this render (e.g. falls back to ASV while NIV has no

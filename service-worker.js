@@ -2,7 +2,7 @@
 // after the first visit. Book/lexicon/search data files fetched on demand are cached
 // opportunistically as they're loaded (runtime cache), growing offline coverage over time.
 
-const CACHE_VERSION = "bible-study-8726cae4f435";
+const CACHE_VERSION = "bible-study-1bb989b16d96";
 const CORE_ASSETS = [
   "./",
   "./index.html",

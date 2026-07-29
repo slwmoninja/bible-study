@@ -473,6 +473,7 @@ async function renderChapter() {
     pendingHighlight = null;
     if (state.settings.showNotes) attachNoteIconHandlers();
     attachBookMapIconHandlers();
+    attachBookArtHandler();
     return;
   }
 
@@ -586,6 +587,7 @@ async function renderChapter() {
   attachArtifactIconHandlers();
   attachAttributionHandlers();
   attachBookMapIconHandlers();
+  attachBookArtHandler();
   populateVerseSelect(verseNums);
   pendingHighlight = null; // one-shot: only highlights the render right after a search-hit navigation
 }
@@ -603,6 +605,22 @@ function attachArtifactIconHandlers() {
   document.querySelectorAll(".artifact-icon").forEach((el) => {
     el.addEventListener("click", () => showArtifactAt(Number(el.dataset.index)));
   });
+}
+
+function attachBookArtHandler() {
+  const btn = document.querySelector("button.book-art");
+  if (btn) btn.addEventListener("click", () => openBookArtModal(btn.dataset.book));
+}
+
+function openBookArtModal(abbr) {
+  const art = window.BOOK_ART && window.BOOK_ART[abbr];
+  if (!art) return;
+  document.getElementById("bookArtModalTitle").textContent = art.title;
+  document.getElementById("bookArtModalBody").innerHTML = `
+    <div class="book-art-photo"><img src="${art.thumbUrl}" alt="${escapeHtml(art.title)}"></div>
+    <p>${escapeHtml(art.title)}${art.artist ? ", " + escapeHtml(art.artist) : ""}</p>
+    <p class="settings-note">${escapeHtml(art.license || "")}</p>`;
+  openScreen(document.getElementById("bookArtModal"));
 }
 
 function showCommentaryModal(book, chapter, verse) {
@@ -772,13 +790,30 @@ function markChapterAndBookNoteIndicators() {
 
 function renderBookHeader(meta, chapter, versionIds) {
   const art = state.settings.showBookArt ? (window.BOOK_ART && window.BOOK_ART[meta.a]) || null : null;
+  // Wikimedia-sourced art's sourceUrl is a real Commons page worth leaving the
+  // app for (attribution/license details); a handful of books (currently just
+  // Matthew) have no such page -- sourceUrl is just the same local image file
+  // already shown as the thumb. For those, open an in-app lightbox instead of
+  // a target="_blank" navigation to that same file: as a same-origin top-level
+  // navigation it isn't part of this SPA's own history stack, so a back
+  // gesture from there doesn't step back into the app the way every other
+  // back gesture here does -- see openBookArtModal().
+  const isLocalArt = art && !/^https?:\/\//i.test(art.sourceUrl);
+  const captionHtml = art
+    ? `<span class="art-caption">${art.isExcavation ? "📷 " : ""}${escapeHtml(art.title)}${art.artist ? ", " + escapeHtml(art.artist) : ""}</span>`
+    : "";
   const artHtml = !state.settings.showBookArt
     ? ""
     : art
-    ? `<a class="book-art" href="${art.sourceUrl}" target="_blank" rel="noopener" title="${escapeHtml(art.title)} — click for source (${escapeHtml(art.license || "")})">
-         <img src="${art.thumbUrl}" alt="${escapeHtml(art.title)}" loading="lazy">
-         <span class="art-caption">${art.isExcavation ? "📷 " : ""}${escapeHtml(art.title)}${art.artist ? ", " + escapeHtml(art.artist) : ""}</span>
-       </a>`
+    ? isLocalArt
+      ? `<button type="button" class="book-art" data-book="${meta.a}" title="${escapeHtml(art.title)} — tap to view full artwork">
+           <img src="${art.thumbUrl}" alt="${escapeHtml(art.title)}" loading="lazy">
+           ${captionHtml}
+         </button>`
+      : `<a class="book-art" href="${art.sourceUrl}" target="_blank" rel="noopener" title="${escapeHtml(art.title)} — click for source (${escapeHtml(art.license || "")})">
+           <img src="${art.thumbUrl}" alt="${escapeHtml(art.title)}" loading="lazy">
+           ${captionHtml}
+         </a>`
     : `<div class="book-art book-art-placeholder"><span class="illum-ornament">&#10047;</span></div>`;
 
   const attributionItems = (versionIds || [])

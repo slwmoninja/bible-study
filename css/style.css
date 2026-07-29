@@ -330,6 +330,16 @@ main#content {
   max-width: 110px;
   flex-shrink: 0;
 }
+/* The clickable art thumbnail is a <button> for local art (opens an in-app
+   lightbox, see openBookArtModal()) and an <a> for Wikimedia-sourced art
+   (opens the Commons source page) -- reset button chrome so both look alike. */
+button.book-art {
+  font-family: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
 .book-art img {
   height: 72px;
   width: auto;
@@ -612,6 +622,15 @@ main#content {
 .artifact-photo img {
   max-width: 100%;
   max-height: 260px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
+/* Book-art lightbox (see openBookArtModal() in js/app.js) */
+.book-art-photo { display: block; margin-bottom: 0.8rem; text-align: center; }
+.book-art-photo img {
+  max-width: 100%;
+  max-height: 60vh;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }

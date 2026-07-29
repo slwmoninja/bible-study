@@ -107,6 +107,18 @@
   <div class="modal-body" id="artifactModalBody"></div>
 </dialog>
 
+<!-- Full-size view for book-header art that has no external source page to link
+     to (currently just Matthew's local nativity image) -- see openBookArtModal()
+     in js/app.js. Wikimedia-sourced art keeps linking straight to its Commons
+     page instead of using this. -->
+<dialog id="bookArtModal">
+  <div class="modal-header">
+    <h2 id="bookArtModalTitle">Artwork</h2>
+    <button class="close-btn" aria-label="Close">&times;</button>
+  </div>
+  <div class="modal-body" id="bookArtModalBody"></div>
+</dialog>
+
 <dialog id="copyModal">
   <div class="modal-header">
     <h2>Copy to Clipboard</h2>

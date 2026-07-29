@@ -257,11 +257,6 @@
     </div>
     <p id="addonOriginalLanguagesProgress" class="settings-note"></p>
     <div class="settings-row">
-      <input type="checkbox" id="addonOfflineBibleToggle">
-      <label for="addonOfflineBibleToggle">Download KJV, ASV, YLT for offline use &mdash; 12.5 MB</label>
-    </div>
-    <p id="addonOfflineBibleProgress" class="settings-note"></p>
-    <div class="settings-row">
       <input type="checkbox" id="addonWordStudyToggle">
       <label for="addonWordStudyToggle">Word Study (lexicon &amp; grammar definitions) &mdash; 9.3 MB</label>
     </div>
@@ -276,16 +271,11 @@
       <label for="addonCommentaryJfbToggle">Jamieson-Fausset-Brown Commentary (1871) &mdash; 12.8 MB</label>
     </div>
     <p id="addonCommentaryJfbProgress" class="settings-note"></p>
-
-    <hr class="settings-divider">
-
-    <h3>Error code</h3>
-    <textarea id="errorLogText" class="error-log-text" readonly rows="6"></textarea>
     <div class="settings-row">
-      <button id="copyErrorLogBtn">Copy</button>
-      <button id="clearErrorLogBtn">Clear</button>
+      <input type="checkbox" id="addonOfflineBibleToggle">
+      <label for="addonOfflineBibleToggle">Download KJV, ASV, YLT for offline use &mdash; 12.5 MB</label>
     </div>
-    <p id="errorLogStatus" class="settings-note"></p>
+    <p id="addonOfflineBibleProgress" class="settings-note"></p>
 
     <hr class="settings-divider">
 
@@ -317,6 +307,16 @@
       <span>Version</span>
       <span id="appVersionLabel"></span>
     </div>
+
+    <hr class="settings-divider">
+
+    <h3>Error code</h3>
+    <textarea id="errorLogText" class="error-log-text" readonly rows="2"></textarea>
+    <div class="settings-row">
+      <button id="copyErrorLogBtn">Copy</button>
+      <button id="clearErrorLogBtn">Clear</button>
+    </div>
+    <p id="errorLogStatus" class="settings-note"></p>
   </div>
 </dialog>
 

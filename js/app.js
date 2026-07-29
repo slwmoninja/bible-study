@@ -43,6 +43,12 @@ withDefault("showBookArt", true);
 withDefault("deleteConfirmations", true);
 withDefault("commentaries", {});
 withDefault("addonOfflineBible", false);
+// Tracks, per Add On, whether the user has ever actually completed a real bulk install
+// through its checkbox -- see the reconciliation comment in initAddonControls() for why
+// this exists: a default-on preference that's never been bulk-installed (Original
+// Languages/Word Study rely on ordinary per-chapter lazy loading in the meantime) isn't
+// "drift" just because Cache Storage doesn't have every file yet.
+withDefault("addonConfirmed", {});
 // Set once the native install prompt resolves "accepted" (see isInstalled()) --
 // a regular browser tab that just walked through installing doesn't itself
 // switch to display-mode:standalone, so that check alone would keep showing
@@ -73,9 +79,10 @@ for (const id of LOCAL_VERSION_IDS) {
     saveSettings(); // persist the collapse so this migration only runs once
   }
 }
-// Matthew Henry on by default; JFB starts off, same ala-carte spirit as versions.
+// Both commentaries start off -- ala-carte, since either one is a heavy (12.8-397.7MB)
+// Add On install, not a default like Original Languages/Word Study.
 for (const id of Object.keys(COMMENTARY_SOURCES)) {
-  if (state.settings.commentaries[id] === undefined) state.settings.commentaries[id] = id === "henry";
+  if (state.settings.commentaries[id] === undefined) state.settings.commentaries[id] = false;
 }
 
 function saveSettings() {
@@ -1504,6 +1511,7 @@ function renderEnglishResults(container, hits, needle, showVersionTag) {
 // keeps its own dedicated flag.
 const ADDONS = [
   {
+    id: "originalLanguages",
     checkboxId: "addonOriginalLanguagesToggle",
     progressId: "addonOriginalLanguagesProgress",
     label: "Original Languages",
@@ -1514,6 +1522,7 @@ const ADDONS = [
     clearMemory: () => { window.INTERLINEAR = {}; },
   },
   {
+    id: "offlineBible",
     checkboxId: "addonOfflineBibleToggle",
     progressId: "addonOfflineBibleProgress",
     label: "KJV, ASV, YLT",
@@ -1524,6 +1533,7 @@ const ADDONS = [
     clearMemory: () => { window.BIBLE_TEXT = {}; },
   },
   {
+    id: "wordStudy",
     checkboxId: "addonWordStudyToggle",
     progressId: "addonWordStudyProgress",
     label: "Word Study",
@@ -1537,6 +1547,7 @@ const ADDONS = [
     clearMemory: () => { window.LEXICON = null; window.MORPH_CODES = null; },
   },
   {
+    id: "commentaryHenry",
     checkboxId: "addonCommentaryHenryToggle",
     progressId: "addonCommentaryHenryProgress",
     label: "Matthew Henry's Commentary",
@@ -1547,6 +1558,7 @@ const ADDONS = [
     clearMemory: () => { if (window.COMMENTARY) window.COMMENTARY.henry = {}; },
   },
   {
+    id: "commentaryJfb",
     checkboxId: "addonCommentaryJfbToggle",
     progressId: "addonCommentaryJfbProgress",
     label: "Jamieson-Fausset-Brown Commentary",
@@ -1639,6 +1651,7 @@ function initAddonControls() {
         cb.disabled = false;
         if (ok) {
           addon.setOn(true);
+          state.settings.addonConfirmed[addon.id] = true;
           saveSettings();
           renderChapter();
         } else {
@@ -1647,19 +1660,33 @@ function initAddonControls() {
       } else {
         removeAddonPack(progressEl, addon.label, addon.urls(), addon.clearMemory);
         addon.setOn(false);
+        state.settings.addonConfirmed[addon.id] = false;
         saveSettings();
         renderChapter();
       }
     });
 
     // Reconcile the checkbox (and the setting it drives) against actual Cache Storage
-    // state once at load, in case they've drifted -- see isAddonInstalled() above.
+    // state once at load, in case they've drifted -- see isAddonInstalled() above. Only
+    // ever corrects DOWNWARD (checked but not really there) if addonConfirmed says the
+    // user actually completed a real bulk install before -- Original Languages/Word
+    // Study default to "on" without ever being bulk-installed (per-chapter lazy loading
+    // covers that fine on its own), and that's a legitimate preference, not drift.
+    // Correcting UPWARD (fully cached but the setting said off) is always safe, so it
+    // runs unconditionally.
     isAddonInstalled(addon.urls()).then((installed) => {
-      if (installed === addon.isOn()) return;
-      addon.setOn(installed);
-      saveSettings();
-      cb.checked = installed;
-      renderChapter();
+      const currentlyOn = addon.isOn();
+      if (installed === currentlyOn) {
+        if (installed) state.settings.addonConfirmed[addon.id] = true;
+        return;
+      }
+      if (installed || state.settings.addonConfirmed[addon.id]) {
+        addon.setOn(installed);
+        state.settings.addonConfirmed[addon.id] = installed;
+        saveSettings();
+        cb.checked = installed;
+        renderChapter();
+      }
     });
   }
 }
@@ -2099,7 +2126,10 @@ function reinstallApp() {
   // Wipes every cached byte above, including whatever Add On Features were
   // installed -- clear their checkboxes' backing flags too so Settings doesn't
   // keep claiming data is present that a fresh load will no longer find cached.
-  for (const addon of ADDONS) addon.setOn(false);
+  for (const addon of ADDONS) {
+    addon.setOn(false);
+    state.settings.addonConfirmed[addon.id] = false;
+  }
   saveSettings();
   try { localStorage.setItem("bibleAppPendingReinstallToast", "1"); } catch (e) {}
   location.href = location.pathname + "?_reinstall=" + Date.now();

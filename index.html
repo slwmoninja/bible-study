@@ -11,23 +11,32 @@
 </head>
 <body>
 
+<!-- Pull-to-refresh indicator: hidden off-screen above the viewport until dragged
+     into view -- see the pull-to-refresh IIFE at the bottom of js/app.js. -->
+<div class="pull-refresh hidden" id="pullRefresh"><span class="arrow">&darr;</span></div>
+
 <header class="topbar">
-  <button id="settingsBtn" class="icon-btn settings-icon-btn" title="Settings" aria-label="Settings">
-    <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">
-      <circle cx="12" cy="12" r="6.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
-      <circle cx="12" cy="12" r="2.2" fill="none" stroke="currentColor" stroke-width="1.3"/>
-      <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-        <line x1="12" y1="1.8" x2="12" y2="4.4"/>
-        <line x1="12" y1="19.6" x2="12" y2="22.2"/>
-        <line x1="1.8" y1="12" x2="4.4" y2="12"/>
-        <line x1="19.6" y1="12" x2="22.2" y2="12"/>
-        <line x1="4.7" y1="4.7" x2="6.5" y2="6.5"/>
-        <line x1="17.5" y1="17.5" x2="19.3" y2="19.3"/>
-        <line x1="4.7" y1="19.3" x2="6.5" y2="17.5"/>
-        <line x1="17.5" y1="6.5" x2="19.3" y2="4.7"/>
-      </g>
-    </svg>
-  </button>
+  <div class="topbar-actions">
+    <!-- Populated by renderInstallUI() in js/app.js -- empty once installed (nothing
+         left to do from the main reading screen; Settings keeps showing status). -->
+    <span id="topbarInstallSlot"></span>
+    <button id="settingsBtn" class="icon-btn" title="Settings" aria-label="Settings">
+      <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">
+        <circle cx="12" cy="12" r="6.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="12" cy="12" r="2.2" fill="none" stroke="currentColor" stroke-width="1.3"/>
+        <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <line x1="12" y1="1.8" x2="12" y2="4.4"/>
+          <line x1="12" y1="19.6" x2="12" y2="22.2"/>
+          <line x1="1.8" y1="12" x2="4.4" y2="12"/>
+          <line x1="19.6" y1="12" x2="22.2" y2="12"/>
+          <line x1="4.7" y1="4.7" x2="6.5" y2="6.5"/>
+          <line x1="17.5" y1="17.5" x2="19.3" y2="19.3"/>
+          <line x1="4.7" y1="19.3" x2="6.5" y2="17.5"/>
+          <line x1="17.5" y1="6.5" x2="19.3" y2="4.7"/>
+        </g>
+      </svg>
+    </button>
+  </div>
   <div class="topbar-title">
     <span class="title-main">Your Bible Study App</span>
     <span class="title-sub">Hebrew/Greek, Devotions, Maps, Private notes</span>
@@ -191,10 +200,41 @@
   <div class="modal-body" id="attributionModalBody"></div>
 </dialog>
 
+<!-- Generic reusable info popup -- install instructions, "remove the Home
+     Screen icon" steps, etc. See openInfoModal() in js/app.js. -->
+<dialog id="infoModal">
+  <div class="modal-header">
+    <h2 id="infoModalTitle">Info</h2>
+    <button class="close-btn" aria-label="Close">&times;</button>
+  </div>
+  <div class="modal-body" id="infoModalBody"></div>
+</dialog>
+
+<!-- Action sheet opened by holding the "Installed" pill -- see the long-press
+     wiring in wireInstallBtn() in js/app.js. -->
+<dialog id="installActionsModal">
+  <div class="modal-header">
+    <h2>Installed</h2>
+    <button class="close-btn" aria-label="Close">&times;</button>
+  </div>
+  <div class="modal-body">
+    <button id="reinstallBtn" class="install-action-btn">Re-Install</button>
+    <p class="settings-note">Keeps your notes, journal, and settings &mdash; refreshes the app's code immediately, no confirmation needed. (This can't make your phone re-fetch the Home Screen icon image itself &mdash; that's only ever captured once, when you first add the shortcut.)</p>
+    <button id="uninstallBtn" class="install-action-btn danger-variant">Uninstall</button>
+    <p class="settings-note">Keeps your data too, by default &mdash; you'll be asked separately if you also want it deleted.</p>
+  </div>
+</dialog>
+
 <dialog id="settingsModal">
   <div class="modal-header">
     <h2>Settings</h2>
-    <button class="close-btn" aria-label="Close">&times;</button>
+    <div class="modal-header-actions">
+      <!-- Populated by renderInstallUI() -- always shown here (even once installed,
+           as an inert "Installed" status line), unlike the topbar pill which
+           disappears once there's nothing left to act on. -->
+      <span id="settingsInstallSlot"></span>
+      <button class="close-btn" aria-label="Close">&times;</button>
+    </div>
   </div>
   <div class="modal-body">
 
@@ -285,6 +325,25 @@
       <button id="clearErrorLogBtn">Clear</button>
     </div>
     <p id="errorLogStatus" class="settings-note"></p>
+
+    <hr class="settings-divider">
+
+    <h3>Backup &amp; Restore</h3>
+    <p class="settings-note">Your notes, journal, and settings auto-save on this device as you go &mdash; this makes a separate copy you control, for the one thing that can't be protected against: deliberately clearing your browser's history/site data.</p>
+    <div class="settings-row">
+      <button id="backupNowBtn">Back up now</button>
+      <button id="restoreBackupBtn">Restore from backup&hellip;</button>
+    </div>
+    <input type="file" id="restoreBackupInput" accept="application/json,.json" multiple class="hidden">
+    <p id="restoreStatus" class="settings-note"></p>
+
+    <hr class="settings-divider">
+
+    <h3>About</h3>
+    <div class="settings-row">
+      <span>Version</span>
+      <span id="appVersionLabel"></span>
+    </div>
   </div>
 </dialog>
 

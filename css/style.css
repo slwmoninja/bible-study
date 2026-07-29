@@ -63,11 +63,47 @@ header.topbar {
 }
 .icon-btn:hover { background: rgba(0,0,0,0.4); }
 
-.settings-icon-btn {
+/* Top-right cluster: the Install pill (see #topbarInstallSlot in js/app.js'
+   renderInstallUI) sits just left of the Settings gear, both pinned to the
+   corner as one group. */
+.topbar-actions {
   position: absolute;
   top: 0.5rem;
   right: 0.6rem;
   z-index: 21;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* "Install"/"Installed" pill -- shown top-right on the main reading screen
+   (disappears once installed, nothing left to act on there) and inside
+   Settings' modal-header (kept as an inert status line even once installed --
+   see installBtnHtml()/renderInstallUI() in js/app.js). Not a real
+   <button disabled> once installed -- it stays enabled (a tap just no-ops)
+   so it can still receive the long-press that opens Re-Install/Uninstall. */
+.topbar-install-btn {
+  font-family: inherit;
+  flex-shrink: 0;
+  border: 1px solid var(--gold-bright);
+  border-radius: 20px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: var(--maroon-dark);
+  background: var(--gold);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.topbar-install-btn:hover { background: var(--gold-bright); }
+.topbar-install-btn:active { transform: translateY(1px); }
+.topbar-install-btn.installed {
+  background: rgba(0,0,0,0.22);
+  color: var(--highlight);
+  border: 1px solid rgba(201,161,59,0.45);
+  font-weight: normal;
+  opacity: 0.85;
+  cursor: default;
 }
 
 .search-popup-row { display: flex; gap: 0.4rem; margin-bottom: 0.4rem; }
@@ -97,7 +133,7 @@ header.topbar {
   align-items: baseline;
   justify-content: space-between;
   gap: 0.6rem;
-  padding-right: 2.5rem; /* keep clear of the settings icon in the top-right */
+  padding-right: 7.6rem; /* keep clear of the top-right Install pill + settings gear cluster */
   margin: 0 0 0.5rem 0;
 }
 
@@ -122,6 +158,9 @@ header.topbar {
   text-align: right;
   flex-shrink: 1;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .controls-row {
@@ -655,6 +694,9 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
   align-items: center;
 }
 .modal-header h2 { margin: 0; font-size: 1.1rem; }
+/* Settings' modal-header carries the Install pill (see #settingsInstallSlot)
+   alongside its close button, on the same row as the "Settings" heading. */
+.modal-header-actions { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; }
 .close-btn {
   background: none;
   border: none;
@@ -946,6 +988,105 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
 #copyToClipboardBtn:disabled { opacity: 0.6; cursor: wait; }
 .copy-range-row select { font-family: inherit; }
 
+.hidden { display: none !important; }
+
+/* ---------- Backup & Restore, Install actions (see js/app.js) ---------- */
+
+#backupNowBtn, #restoreBackupBtn {
+  font-family: inherit;
+  border: 1px solid var(--gold);
+  background: var(--gold);
+  color: var(--maroon-dark);
+  font-weight: bold;
+  border-radius: 4px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+}
+#backupNowBtn:hover, #restoreBackupBtn:hover { background: var(--gold-bright); }
+
+/* Re-Install / Uninstall action sheet buttons -- full-width, stacked. */
+.install-action-btn {
+  display: block;
+  width: 100%;
+  font-family: inherit;
+  border: 1px solid var(--gold);
+  background: var(--gold);
+  color: var(--maroon-dark);
+  font-weight: bold;
+  border-radius: 4px;
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  margin-bottom: 0.4rem;
+}
+.install-action-btn:hover { background: var(--gold-bright); }
+.install-action-btn.danger-variant { background: none; border-color: var(--maroon); color: var(--maroon); }
+.install-action-btn.danger-variant:hover { background: var(--maroon); color: var(--parchment); }
+
+/* ---------- Pull-to-refresh (forces an update check on demand -- see the
+   pull-to-refresh IIFE in js/app.js) ---------- */
+
+.pull-refresh {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translate(-50%, -60px);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--parchment);
+  border: 1px solid var(--gold);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: var(--maroon);
+  z-index: 80;
+}
+.pull-refresh.hidden { display: none; }
+.pull-refresh.dragging { transition: none; }
+.pull-refresh:not(.dragging) { transition: transform .2s ease, opacity .2s ease; }
+.pull-refresh .arrow { transition: transform .15s ease; line-height: 1; }
+.pull-refresh.ready .arrow { transform: rotate(180deg); }
+.pull-refresh.spinning .arrow { display: none; }
+.pull-refresh.spinning::after {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--parchment-dark);
+  border-top-color: var(--maroon);
+  animation: pr-spin .7s linear infinite;
+}
+@keyframes pr-spin { to { transform: rotate(360deg); } }
+
+/* ---------- Toast (silent backup save/restore feedback -- never blocks input) ---------- */
+
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translate(-50%, 12px);
+  max-width: calc(100% - 32px);
+  background: var(--ink);
+  color: var(--highlight);
+  font-family: Georgia, "Palatino Linotype", "Book Antiqua", serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  padding: 10px 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .2s ease, transform .2s ease;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+#toast.toast-good { background: #2e6b3d; color: #fff; }
+#toast.toast-critical { background: var(--maroon); color: var(--highlight); }
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 600px) {
@@ -960,6 +1101,10 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
   .version-attribution-item { font-size: 0.6rem; padding: 0.05rem 0.25rem; }
   .verses { font-size: 1.05rem; }
   .interlinear-row { margin-left: 0.5rem; }
+  /* Tighter top-right cluster on narrow phones, so the pill + gear don't eat
+     too much of the topbar-title row. */
+  .topbar-title { padding-right: 6.4rem; }
+  .topbar-install-btn { font-size: 0.68rem; padding: 0.26rem 0.55rem; }
 }
 
 /* Desktop/PC: the app's primary target is mobile, but it's a full responsive web

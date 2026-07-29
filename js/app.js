@@ -1,3 +1,9 @@
+// Human-readable build marker, shown in Settings > About -- bump this on every
+// change from here on so a reload can be visually confirmed against what was
+// actually deployed. Distinct from service-worker.js's CACHE_VERSION (that one
+// gates the offline cache/data schema, unrelated to this app-code version).
+const APP_VERSION = "1.0.0";
+
 const LOCAL_VERSION_IDS = ["ASV", "KJV", "YLT"];
 const YOUVERSION_ID = "YV"; // the app's primary/default version -- see js/youversion.js
 const COMMENTARY_SOURCES = {
@@ -36,6 +42,12 @@ withDefault("showNotes", true);
 withDefault("showBookArt", true);
 withDefault("deleteConfirmations", true);
 withDefault("commentaries", {});
+// Set once the native install prompt resolves "accepted" (see isInstalled()) --
+// a regular browser tab that just walked through installing doesn't itself
+// switch to display-mode:standalone, so that check alone would keep showing
+// "Install" until the user actually relaunches from the Home Screen icon.
+// This remembers it across reloads of the same tab in the meantime.
+withDefault("installPromptAccepted", false);
 
 // Only one Bible version is ever active at a time (see selectSingleVersion).
 // NIV is the default -- it now requires no API key (the key is hidden
@@ -152,6 +164,42 @@ function openNonModal(dialog) {
     dialog.show();
   } else {
     dialog.setAttribute("open", "");
+  }
+}
+
+// ---------- History-aware modal open/close ----------
+// This app has one persistent reading screen (book/chapter, changed via
+// navigateTo -- see below) plus a dozen <dialog> overlays a reader opens into
+// and needs a real "back" out of on a phone: a hardware back press, an
+// Android gesture-nav swipe, or an iOS edge-swipe should close whichever
+// dialog is open -- one step -- not exit the app. Every dialog is opened
+// through openScreen() (pushes one history entry per *newly* opened dialog --
+// re-opening/refreshing an already-open one, e.g. the artifact modal's
+// Prev/Next or a note panel refreshed after a drag-move, is a no-op push, so
+// back doesn't need multiple presses to undo a single visible action) and
+// dismissed through closeScreen() (steps history back if this dialog owns the
+// current entry; otherwise just closes it directly -- covers a dialog closed
+// as a side effect of navigating elsewhere, e.g. tapping a related-passage
+// link inside the "Biblical discoveries" modal, which calls navigateTo()
+// itself and pushes its own new entry). See the single popstate listener
+// below navigateTo() for the other half of this.
+function openScreen(dialog, opts) {
+  const alreadyOpen = dialog.open;
+  if (!alreadyOpen) {
+    history.pushState({ book: state.book, chapter: state.chapter, modal: dialog.id }, "");
+  }
+  if (opts && opts.nonModal) {
+    openNonModal(dialog); // .show() is a safe no-op if already open
+  } else if (!alreadyOpen) {
+    openModal(dialog); // .showModal() throws if called while already open
+  }
+}
+function closeScreen(dialog) {
+  if (history.state && history.state.modal === dialog.id) {
+    history.back(); // the popstate listener below performs the actual close + state sync
+  } else if (dialog.open) {
+    if (typeof dialog.close === "function") dialog.close();
+    else dialog.removeAttribute("open");
   }
 }
 
@@ -279,16 +327,48 @@ function syncQuickVersionSelect() {
   if ([...sel.options].some((o) => o.value === current)) sel.value = current;
 }
 
-async function navigateTo(book, chapter) {
+// opts.skipHistory: true when called FROM the popstate handler below (the
+// browser already moved the history position; pushing again here would fight
+// it). opts.replace: true only for the very first navigation on load, so
+// back from that first real screen exits the app instead of landing on a
+// stale/incomplete entry -- see the history.replaceState() call at the end
+// of initUI().
+async function navigateTo(book, chapter, opts) {
+  opts = opts || {};
   state.book = book;
   state.chapter = chapter;
   localStorage.setItem(LAST_LOCATION_KEY, JSON.stringify({ book, chapter }));
+  if (!opts.skipHistory) {
+    if (opts.replace) history.replaceState({ book, chapter }, "");
+    else history.pushState({ book, chapter }, "");
+  }
   populateChapterSelect();
   document.getElementById("bookSelect").value = book;
   document.getElementById("chapterSelect").value = chapter;
   await renderChapter();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+
+// Every explicit forward navigation (navigateTo pushing a new book/chapter,
+// openScreen pushing a newly-opened dialog) put exactly one entry on the
+// history stack for exactly one visible change -- so a single back step here
+// (hardware back, Android gesture-nav swipe, iOS edge-swipe, or the browser's
+// own back button) always undoes exactly one of those, never jumps straight
+// past several of them to some fixed "home". This listener's only job is to
+// reflect whatever the browser already walked back to -- it must NOT push
+// anything itself, or back would stop being undo-one-step.
+window.addEventListener("popstate", (e) => {
+  const target = e.state || { book: state.book, chapter: state.chapter, modal: null };
+  document.querySelectorAll("dialog[open]").forEach((d) => {
+    if (target.modal !== d.id) {
+      if (typeof d.close === "function") d.close();
+      else d.removeAttribute("open");
+    }
+  });
+  if (target.book && (target.book !== state.book || Number(target.chapter) !== state.chapter)) {
+    navigateTo(target.book, Number(target.chapter), { skipHistory: true });
+  }
+});
 
 // ---------- Rendering ----------
 
@@ -519,7 +599,7 @@ function showCommentaryModal(book, chapter, verse) {
         <h3>${escapeHtml(COMMENTARY_SOURCES[s.id])}</h3>
         <p>${s.html}</p>
       </div>`).join("");
-  openModal(document.getElementById("commentaryModal"));
+  openScreen(document.getElementById("commentaryModal"));
 }
 
 // ---------- Maps ----------
@@ -543,7 +623,7 @@ function showBookMap(bookAbbr) {
   const mapId = window.BOOK_MAP_ID && window.BOOK_MAP_ID[bookAbbr];
   if (!mapId) return;
   renderMapsGallery();
-  openModal(document.getElementById("mapsModal"));
+  openScreen(document.getElementById("mapsModal"));
   const card = document.getElementById(`map-card-${mapId}`);
   if (card) {
     card.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -625,6 +705,11 @@ function showArtifactAt(index) {
   body.querySelectorAll(".artifact-verse-link").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const { book, chapter, verse } = btn.dataset;
+      // Closes directly (not via closeScreen -- this tap is one combined "go to a
+      // different passage" action, not a plain dismiss) then navigateTo() pushes
+      // its own new history entry for the destination chapter right on top; back
+      // from there lands on the chapter that was showing when this modal was
+      // opened, exactly one step, same as any other closeScreen dismiss would.
       const modal = document.getElementById("artifactModal");
       if (typeof modal.close === "function") modal.close();
       else modal.removeAttribute("open");
@@ -634,7 +719,7 @@ function showArtifactAt(index) {
   });
 
   const modal = document.getElementById("artifactModal");
-  if (!modal.open) openModal(modal);
+  openScreen(modal); // no-op push if already open (Prev/Next within the same open modal)
 }
 
 function populateVerseSelect(verseNums) {
@@ -785,7 +870,7 @@ function showStudyAid(word, testament) {
     <p class="study-usage">${usageNote}</p>
     ${morphemesHtml}
   `;
-  openModal(modal);
+  openScreen(modal);
 }
 
 // ---------- Notes ----------
@@ -813,7 +898,7 @@ function attachAttributionHandlers() {
   document.querySelectorAll(".version-attribution-item").forEach((btn) => {
     btn.addEventListener("click", () => {
       document.getElementById("attributionModalBody").textContent = btn.title;
-      openModal(document.getElementById("attributionModal"));
+      openScreen(document.getElementById("attributionModal"));
     });
   });
 }
@@ -978,8 +1063,11 @@ function showNotesPanel(book, chapter, verse) {
   render();
   // Non-modal (like the search panel): a modal dialog makes the rest of the
   // page inert, which would block dropping a dragged note onto a verse,
-  // chapter label, or book title behind this panel.
-  openNonModal(modal);
+  // chapter label, or book title behind this panel. openScreen() no-ops the
+  // history push when the panel is already open (e.g. refreshed after a
+  // drag-drop move via attachNoteDropHandlers), so that doesn't add an extra
+  // back-step for something that isn't really a new "screen".
+  openScreen(modal, { nonModal: true });
 }
 
 function parseSimpleRef(input) {
@@ -1199,7 +1287,7 @@ function openNotepad() {
   });
 
   renderList();
-  openModal(modal);
+  openScreen(modal);
   document.getElementById("newJournalText").focus();
 }
 
@@ -1630,7 +1718,7 @@ function showCopyModal() {
   fromSel.value = verseNums[0];
   toSel.value = verseNums[verseNums.length - 1];
   document.getElementById("copyStatus").textContent = "";
-  openModal(document.getElementById("copyModal"));
+  openScreen(document.getElementById("copyModal"));
 }
 
 function initCopyControls() {
@@ -1682,6 +1770,530 @@ function initCopyControls() {
   });
 }
 
+// ---------- Toast (non-blocking feedback) ----------
+// Used for routine backup save/restore/install events -- unlike alert(), it
+// never freezes the page waiting for a tap, and pointer-events:none means it
+// can't intercept a touch even while visible.
+let toastTimer = null;
+function showToast(message, tone) {
+  let el = document.getElementById("toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "toast";
+    document.body.appendChild(el);
+  }
+  el.textContent = message;
+  el.className = "toast show" + (tone ? " toast-" + tone : "");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.classList.remove("show"); }, 3200);
+}
+
+// ---------- Generic info modal (install instructions, "remove the icon" steps) ----------
+function openInfoModal(title, bodyHtml) {
+  document.getElementById("infoModalTitle").textContent = title;
+  document.getElementById("infoModalBody").innerHTML = bodyHtml;
+  openScreen(document.getElementById("infoModal"));
+}
+
+// ---------- Update checking ----------
+// True while focus is in a text field/textarea -- checkForUpdate() defers its
+// reload rather than yanking a mid-edit note or search box out from under
+// the user; it just tries again on the next check instead.
+function isUserTyping() {
+  const el = document.activeElement;
+  if (!el) return false;
+  if (el.tagName === "TEXTAREA") return true;
+  if (el.tagName === "INPUT") return /^(text|search|number)$/i.test(el.type || "text");
+  return false;
+}
+// Remembered across sessions (not just in-memory) so the very first check of a
+// new session can catch "what got served just now is already behind what's on
+// the server" instead of only catching drift that happens later.
+const DEPLOYED_TAG_KEY = "bibleAppDeployedTag";
+let deployedVersionTag = (function () { try { return localStorage.getItem(DEPLOYED_TAG_KEY); } catch (e) { return null; } })();
+// Returns a status string so callers wanting feedback (pull-to-refresh) can
+// react -- the interval/visibilitychange callers below just ignore it.
+async function checkForUpdate() {
+  try {
+    const res = await fetch(location.pathname + "?_=" + Date.now(), { cache: "no-store", method: "HEAD" });
+    const tag = res.headers.get("etag") || res.headers.get("last-modified");
+    if (!tag) return "unknown";
+    if (deployedVersionTag === null) {
+      deployedVersionTag = tag;
+      try { localStorage.setItem(DEPLOYED_TAG_KEY, tag); } catch (e) {}
+      return "up-to-date";
+    }
+    if (tag === deployedVersionTag) return "up-to-date";
+    if (isUserTyping()) return "deferred"; // try again next check instead of interrupting active input
+    deployedVersionTag = tag;
+    try { localStorage.setItem(DEPLOYED_TAG_KEY, tag); } catch (e) {}
+    location.reload();
+    return "reloading";
+  } catch (e) { return "offline"; } // offline or blocked -- silently skip, next successful check catches up
+}
+checkForUpdate();
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") checkForUpdate();
+});
+
+// ---------- Storage persistence ----------
+// Best-effort ask not to auto-evict this site's storage under low-disk
+// pressure. There's no way to test real eviction behavior on someone else's
+// actual phone from here, so a denial (with a rough usage/quota estimate) is
+// logged to the same Error code the user can already copy out of Settings --
+// visible later if data loss is ever reported, rather than silently swallowed.
+(async function checkStoragePersistence() {
+  if (!(navigator.storage && navigator.storage.persist)) return;
+  try {
+    let persisted = await (navigator.storage.persisted ? navigator.storage.persisted() : Promise.resolve(false));
+    if (!persisted) persisted = await navigator.storage.persist();
+    if (!persisted) {
+      let detail = "";
+      try {
+        const est = await navigator.storage.estimate();
+        if (est && est.quota) detail = ` (using ~${Math.round((est.usage || 0) / 1048576)}MB of ~${Math.round(est.quota / 1048576)}MB available to this browser)`;
+      } catch (e) {}
+      ErrorLog.record(`Storage is NOT persisted${detail} -- this browser may silently evict this app's notes/journal under storage pressure, even without you clearing history. Try Add to Home Screen / Install for the strongest protection.`, "storage-persist");
+    }
+  } catch (e) { /* best effort */ }
+})();
+
+// ---------- Install / Home Screen ----------
+
+// True once actually running as the installed/home-screen app rather than a
+// regular browser tab -- display-mode covers Chrome/Edge/Android,
+// navigator.standalone is Safari's own (non-standard, iOS-only) equivalent.
+function isStandaloneApp() {
+  return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+}
+// What the Install pill actually checks -- not just isStandaloneApp(), since a
+// regular tab that just walked through a manual/native install doesn't itself
+// flip to display-mode:standalone until the user actually relaunches from the
+// Home Screen icon (see the installPromptAccepted default in withDefault()).
+function isInstalled() {
+  return isStandaloneApp() || !!state.settings.installPromptAccepted;
+}
+// Shown top-right on the main reading screen (same row as the app title) and
+// inside Settings' modal-header (same row as the "Settings" heading). Once
+// actually installed there's nothing left to act on from the reading screen,
+// so it disappears there; Settings passes keepAfterInstall=true to keep
+// showing it as an inert "Installed" status line instead, since that's the
+// one place people go to confirm state. Not a real <button disabled> once
+// installed -- it stays enabled (a plain tap just no-ops, see wireInstallBtn)
+// so it can still receive the long-press that opens Re-Install/Uninstall.
+function installBtnHtml(id, keepAfterInstall) {
+  const installed = isInstalled();
+  if (installed && !keepAfterInstall) return "";
+  return `<button class="topbar-install-btn${installed ? " installed" : ""}" id="${id}">${installed ? "Installed" : "Install"}</button>`;
+}
+// Re-renders both Install pill slots (main topbar + Settings) and rewires
+// their handlers -- called on load and after anything that can change
+// isInstalled()'s answer (beforeinstallprompt arriving, appinstalled firing,
+// an accepted manual/native prompt, Re-Install, Uninstall).
+function renderInstallUI() {
+  const topbarSlot = document.getElementById("topbarInstallSlot");
+  if (topbarSlot) {
+    topbarSlot.innerHTML = installBtnHtml("topbarInstallBtn", false);
+    wireInstallBtn("topbarInstallBtn");
+  }
+  const settingsSlot = document.getElementById("settingsInstallSlot");
+  if (settingsSlot) {
+    settingsSlot.innerHTML = installBtnHtml("settingsInstallBtn", true);
+    wireInstallBtn("settingsInstallBtn");
+  }
+}
+function wireInstallBtn(id) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+
+  btn.addEventListener("click", async () => {
+    if (isInstalled()) return; // no-op tap once installed -- long-press is the only action left, see below
+    if (deferredInstallPrompt) {
+      const promptEvent = deferredInstallPrompt;
+      deferredInstallPrompt = null; // one-shot -- the browser invalidates it after a single use either way
+      promptEvent.prompt();
+      const choice = await promptEvent.userChoice;
+      if (choice.outcome === "accepted") {
+        state.settings.installPromptAccepted = true;
+        saveSettings();
+        showToast("Installed — look for it on your Home Screen.", "good");
+      }
+      renderInstallUI();
+    } else {
+      // No captured browser-native prompt -- either this browser doesn't support
+      // triggering install from a page at all (iOS Safari, plain Firefox), or
+      // Chrome/Edge just hasn't fired beforeinstallprompt yet. The manual path
+      // always works; there's no signal a page can detect for "the user actually
+      // finished the manual steps", so this can't flip to Installed on its own --
+      // only relaunching from the real Home Screen icon can do that.
+      openInfoModal("Install on Home Screen", `
+        <strong>iPhone/iPad (Safari):</strong> tap the Share icon (square with an arrow), then "Add to Home Screen".<br><br>
+        <strong>Android (Chrome), if this button didn't just install it directly:</strong> tap the &#8942; menu in the top right, then "Add to Home Screen" or "Install app".<br><br>
+        <strong>Desktop Chrome/Edge:</strong> look for an install icon at the right edge of the address bar, or use the &#8942; menu.
+      `);
+    }
+  });
+
+  // Holding the "Installed" pill opens Re-Install/Uninstall -- pointerdown/up
+  // timing (not the "contextmenu" event) so it behaves the same on a mouse and
+  // on touch, and so a normal tap that starts turning into a scroll
+  // (pointermove past MOVE_TOLERANCE) cancels cleanly instead of firing.
+  let holdTimer = null, holdStart = null;
+  const HOLD_MS = 550, MOVE_TOLERANCE = 10;
+  const cancelHold = () => { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } holdStart = null; };
+  btn.addEventListener("pointerdown", (e) => {
+    if (!isInstalled()) return;
+    holdStart = [e.clientX, e.clientY];
+    holdTimer = setTimeout(() => { holdTimer = null; openScreen(document.getElementById("installActionsModal")); }, HOLD_MS);
+  });
+  btn.addEventListener("pointermove", (e) => {
+    if (!holdTimer || !holdStart) return;
+    if (Math.hypot(e.clientX - holdStart[0], e.clientY - holdStart[1]) > MOVE_TOLERANCE) cancelHold();
+  });
+  ["pointerup", "pointercancel", "pointerleave"].forEach((evt) => btn.addEventListener(evt, cancelHold));
+  btn.addEventListener("contextmenu", (e) => { if (isInstalled()) e.preventDefault(); }); // swallow the native long-press menu
+}
+// Chrome/Edge/Android fire this instead of installing immediately, handing over
+// an event whose .prompt() shows the native install UI on demand -- captured up
+// front and held until the Install pill is actually tapped. preventDefault()
+// stops the browser's own separate install mini-infobar so the pill is the one
+// path in, avoiding two different install prompts fighting for attention.
+let deferredInstallPrompt = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  renderInstallUI();
+});
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  state.settings.installPromptAccepted = true;
+  saveSettings();
+  renderInstallUI();
+});
+// Fires immediately, no confirmation -- clears every cache layer this page can
+// reach (the service worker's own registration plus the Cache Storage entries
+// it's allowed to make, see service-worker.js) then forces a cache-busted
+// reload right now, same intent as checkForUpdate()'s no-store check just
+// forced instead of waiting for the next visibilitychange. Never touches
+// localStorage (notes/journal/settings are untouched). This can't make the OS
+// re-fetch the *icon* for an already-placed Home Screen/taskbar shortcut --
+// that image is only ever captured once, at install time -- but the code it
+// launches next time is guaranteed fresh either way (see the toast this shows
+// after the reload completes, via the pendingReinstallToast flag below).
+function reinstallApp() {
+  if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+    navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister()));
+  }
+  if (window.caches && caches.keys) {
+    caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
+  }
+  try { localStorage.setItem("bibleAppPendingReinstallToast", "1"); } catch (e) {}
+  location.href = location.pathname + "?_reinstall=" + Date.now();
+}
+// No web API lets a page force-remove its own Home Screen/taskbar shortcut --
+// that's an OS-level action only the user can take (steps shown below) -- so
+// this only clears this app's own belief that it's installed here, which flips
+// the Install pill back to "Install". If this is running *as* the installed
+// app right now, isInstalled() still reports true afterward (isStandaloneApp()
+// alone already covers that) until the shortcut is actually removed and the
+// site reopened in a normal tab -- which is correct, not a bug.
+function uninstallApp() {
+  if (!confirm("Uninstall on this device? The Home Screen/taskbar icon itself has to be removed separately (steps follow) — this just clears the \"Installed\" status here. Continue?")) return;
+  state.settings.installPromptAccepted = false;
+  saveSettings();
+  let dataDeleted = false;
+  if (confirm("Also delete all notes, journal entries, and settings on this device? This cannot be undone.")) {
+    BACKUP_KEYS.forEach((k) => localStorage.removeItem(k));
+    dataDeleted = true;
+  }
+  openInfoModal("Remove the Home Screen Icon", `
+    <strong>iPhone/iPad:</strong> touch and hold the app icon, then tap "Remove App".<br><br>
+    <strong>Android:</strong> touch and hold the app icon, then tap "Uninstall".<br><br>
+    <strong>Desktop Chrome/Edge:</strong> right-click the app icon (Start Menu/Dock/taskbar), then choose "Uninstall".<br><br>
+    ${dataDeleted ? "Your data on this device has been deleted." : "Your notes, journal, and settings have been kept — reinstalling will pick up right where you left off."}
+  `);
+  showToast(dataDeleted ? "Uninstalled and data deleted." : "Uninstalled — data kept.", "good");
+  if (dataDeleted) {
+    // A full reload is simplest/safest here -- Notes/Journal read straight from
+    // localStorage on every call rather than being cached in `state`, but the
+    // chapter already on screen has note icons baked into its last render.
+    setTimeout(() => location.reload(), 1200);
+  } else {
+    renderInstallUI();
+  }
+}
+
+// ---------- Backup / Restore ----------
+// Manual-only, gated entirely behind the explicit "Back up now" tap in
+// Settings -- never called automatically from saveSettings()/Notes/Journal or
+// on backgrounding. An earlier version of this pattern (built for another app
+// in this same family) called an equivalent export on every save, which
+// silently piled up dozens of downloaded files plus an unsuppressable OS
+// "Download complete" notification every single time -- exactly what this is
+// avoiding.
+//
+// Never renamed: these are the exact keys Notes/Journal/ErrorLog/app.js
+// already use for their own normal localStorage persistence (see js/notes.js,
+// js/journal.js, js/errorlog.js) -- a backup is just a portable snapshot of
+// them, not a second parallel storage format.
+const BACKUP_KEYS = ["bibleAppSettings", "bibleAppLastLocation", "bibleAppNotes", "bibleAppJournal", "bibleAppErrorLog"];
+
+// Minimal IndexedDB wrapper for the one thing it's used for: persisting a
+// FileSystemFileHandle across page loads so the single-file-overwrite path
+// below can reuse the same on-disk file without re-prompting every time (a
+// handle isn't JSON-serializable, so it can't live in localStorage).
+const BACKUP_HANDLE_DB = "bible-study-fs", BACKUP_HANDLE_STORE = "handles", BACKUP_HANDLE_KEY = "backupFile";
+function openHandleDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(BACKUP_HANDLE_DB, 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore(BACKUP_HANDLE_STORE); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function loadSavedBackupHandle() {
+  try {
+    const db = await openHandleDb();
+    return await new Promise((resolve, reject) => {
+      const req = db.transaction(BACKUP_HANDLE_STORE, "readonly").objectStore(BACKUP_HANDLE_STORE).get(BACKUP_HANDLE_KEY);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) { return null; }
+}
+async function saveBackupHandle(handle) {
+  try {
+    const db = await openHandleDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(BACKUP_HANDLE_STORE, "readwrite");
+      tx.objectStore(BACKUP_HANDLE_STORE).put(handle, BACKUP_HANDLE_KEY);
+      tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
+    });
+  } catch (e) { /* best-effort */ }
+}
+// On browsers with the File System Access API (desktop Chrome/Edge -- absent
+// on iOS Safari and most Android Chrome, kept here as progressive enhancement)
+// this lets "Back up now" overwrite the SAME on-disk file every time instead
+// of creating a new timestamped one every tap. A saved, already-granted handle
+// is reused silently on every call after the first.
+async function getWritableBackupHandle() {
+  if (!window.showSaveFilePicker) return null;
+  try {
+    let handle = await loadSavedBackupHandle();
+    if (handle) {
+      const perm = await handle.queryPermission({ mode: "readwrite" });
+      if (perm === "granted") return handle;
+      const req = await handle.requestPermission({ mode: "readwrite" });
+      if (req === "granted") return handle;
+      return null; // permission denied
+    }
+    handle = await window.showSaveFilePicker({
+      suggestedName: "bible-study-data.json",
+      types: [{ description: "Bible Study App backup", accept: { "application/json": [".json"] } }],
+    });
+    await saveBackupHandle(handle);
+    return handle;
+  } catch (e) {
+    return null; // user cancelled the picker, or any other failure -- caller falls back
+  }
+}
+// Pulls the current value of every BACKUP_KEYS entry into one portable,
+// human-readable JSON object -- parsed back out of localStorage's raw strings
+// rather than copied verbatim, so the exported file reads as real nested JSON.
+function collectBackupData() {
+  const data = {};
+  for (const key of BACKUP_KEYS) {
+    const raw = localStorage.getItem(key);
+    if (raw != null) {
+      try { data[key] = JSON.parse(raw); } catch (e) { data[key] = raw; }
+    }
+  }
+  return { _app: "BibleStudyApp", _backupVersion: 1, exportedAt: new Date().toISOString(), data };
+}
+async function backupNow() {
+  const json = JSON.stringify(collectBackupData(), null, 2);
+  const handle = await getWritableBackupHandle();
+  if (handle) {
+    try {
+      const writable = await handle.createWritable();
+      await writable.write(json);
+      await writable.close();
+      showToast("Backup saved.", "good");
+      return;
+    } catch (e) { /* fall through to the timestamped-download fallback below */ }
+  }
+  try {
+    const blob = new Blob([json], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    // Timestamped, not a fixed name -- a fixed name hits a hard "file already
+    // exists" failure on-device rather than a silent auto-rename, on the
+    // browsers that land here (no File System Access API, or no granted handle).
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    a.download = `bible-study-backup-${stamp}.json`;
+    a.click();
+    showToast("Backup saved to your Downloads.", "good");
+  } catch (e) {
+    showToast("Could not save backup: " + e.message, "critical");
+  }
+}
+// Picks the newest backup out of one or more selected files, so restoring
+// never requires the user to eyeball filenames/dates themselves. Matches this
+// app's own timestamped filename first (sorts correctly as a string, no file
+// reads needed); anything that doesn't match (e.g. a renamed file) falls back
+// to the File object's own lastModified.
+function pickLatestBackupFile(files) {
+  const list = Array.from(files || []).filter((f) => /\.json$/i.test(f.name));
+  if (!list.length) return null;
+  const stampOf = (f) => {
+    const m = f.name.match(/bible-study-backup-(.+)\.json$/i);
+    return m ? m[1] : null;
+  };
+  list.sort((a, b) => {
+    const sa = stampOf(a), sb = stampOf(b);
+    if (sa && sb) return sa < sb ? 1 : sa > sb ? -1 : 0;
+    if (sa && !sb) return -1;
+    if (sb && !sa) return 1;
+    return b.lastModified - a.lastModified;
+  });
+  return list[0];
+}
+async function importDataFromFile(file) {
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    if (!parsed || typeof parsed !== "object" || parsed._app !== "BibleStudyApp" || !parsed.data || typeof parsed.data !== "object") {
+      throw new Error("This file does not look like a Bible Study App backup.");
+    }
+    if (!confirm("This will replace your notes, journal entries, and settings on this device with the contents of this backup. Continue?")) return;
+    for (const key of BACKUP_KEYS) {
+      if (parsed.data[key] !== undefined) localStorage.setItem(key, JSON.stringify(parsed.data[key]));
+    }
+    // A reload is the simplest safe way to pick up restored settings through
+    // this app's own normal startup path (withDefault() merges onto the
+    // current defaults, so a backup from an older version with fewer fields
+    // doesn't leave newly-added settings fields undefined) rather than trying
+    // to hand-splice a live in-memory `state` object here.
+    showToast("Backup restored — reloading…", "good");
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    showToast("Could not restore that file: " + e.message, "critical");
+  }
+}
+function importLatestBackupFromFiles(files) {
+  const latest = pickLatestBackupFile(files);
+  if (!latest) {
+    if (files && files.length) showToast("No .json backup file found in what you selected.", "critical");
+    return;
+  }
+  importDataFromFile(latest);
+}
+// On browsers that support it, jumps the native picker straight into the
+// Downloads folder and allows multi-select in one go. iOS Safari and
+// older/other Android browsers don't expose this API, so they fall back to
+// the plain <input type=file multiple> picker passed in.
+async function openBackupRestorePicker(fallbackInputEl) {
+  if (window.showOpenFilePicker) {
+    try {
+      const handles = await window.showOpenFilePicker({
+        multiple: true,
+        startIn: "downloads",
+        types: [{ description: "Bible Study App backup", accept: { "application/json": [".json"] } }],
+      });
+      const files = await Promise.all(handles.map((h) => h.getFile()));
+      importLatestBackupFromFiles(files);
+      return;
+    } catch (e) {
+      if (e.name === "AbortError") return; // user backed out of the picker -- don't chain into a second one
+    }
+  }
+  fallbackInputEl.click();
+}
+
+function initInstallAndBackupControls() {
+  document.getElementById("appVersionLabel").textContent = APP_VERSION;
+
+  document.getElementById("backupNowBtn").addEventListener("click", backupNow);
+  const restoreInput = document.getElementById("restoreBackupInput");
+  document.getElementById("restoreBackupBtn").addEventListener("click", () => openBackupRestorePicker(restoreInput));
+  restoreInput.addEventListener("change", () => {
+    importLatestBackupFromFiles(restoreInput.files);
+    restoreInput.value = ""; // lets picking the exact same file again re-fire "change"
+  });
+
+  document.getElementById("reinstallBtn").addEventListener("click", () => {
+    reinstallApp(); // navigates away immediately -- no need to fuss with closing the dialog/history first
+  });
+  document.getElementById("uninstallBtn").addEventListener("click", () => {
+    closeScreen(document.getElementById("installActionsModal"));
+    uninstallApp();
+  });
+
+  // Shown once, right after a Re-Install-triggered reload -- see reinstallApp().
+  try {
+    if (localStorage.getItem("bibleAppPendingReinstallToast")) {
+      localStorage.removeItem("bibleAppPendingReinstallToast");
+      showToast("Reinstalled — running the latest code. (The Home Screen icon image itself only updates if you remove and re-add the shortcut.)", "good");
+    }
+  } catch (e) {}
+
+  renderInstallUI();
+}
+
+/* =========================================================
+   PULL-TO-REFRESH -- forces an update check on demand instead of waiting for
+   backgrounding/foregrounding to trigger one. Only activates when the touch
+   starts at the top of the page's normal scroll (this app has one scrolling
+   document -- no per-screen internal scroll container) and no dialog is open,
+   so it doesn't fight normal scrolling or a modal's own touch handling.
+   ========================================================= */
+(function () {
+  const indicator = document.getElementById("pullRefresh");
+  const THRESHOLD = 70;
+  let startY = null, dragging = false, ready = false;
+  document.addEventListener("touchstart", (e) => {
+    if (window.scrollY === 0 && !document.querySelector("dialog[open]")) {
+      startY = e.touches[0].clientY;
+      dragging = true; ready = false;
+      indicator.classList.remove("hidden");
+      indicator.classList.add("dragging");
+    }
+  }, { passive: true });
+  document.addEventListener("touchmove", (e) => {
+    if (!dragging || startY === null) return;
+    const dy = e.touches[0].clientY - startY;
+    if (dy > 0 && window.scrollY === 0) {
+      const dist = Math.min(dy, THRESHOLD * 1.6);
+      ready = dy > THRESHOLD;
+      indicator.style.transform = `translate(-50%, ${dist - 60}px)`;
+      indicator.classList.toggle("ready", ready);
+    }
+  }, { passive: true });
+  document.addEventListener("touchend", async () => {
+    if (!dragging) return;
+    dragging = false;
+    indicator.classList.remove("dragging");
+    if (!ready) {
+      indicator.classList.remove("ready");
+      indicator.style.transform = "";
+      indicator.classList.add("hidden");
+      startY = null;
+      return;
+    }
+    indicator.classList.remove("ready");
+    indicator.classList.add("spinning");
+    indicator.style.transform = "translate(-50%, 10px)";
+    const status = await checkForUpdate();
+    if (status !== "reloading") { // otherwise the page is already navigating away
+      indicator.classList.remove("spinning");
+      indicator.style.transform = "";
+      indicator.classList.add("hidden");
+    }
+    startY = null;
+  });
+})();
+
 // ---------- Wiring ----------
 
 // Checkbox settings that just flip a boolean and re-render the chapter.
@@ -1722,12 +2334,12 @@ function initUI() {
     runSearch(document.getElementById("searchInput").value);
   });
   document.getElementById("searchIconBtn").addEventListener("click", () => {
-    openNonModal(document.getElementById("searchModal"));
+    openScreen(document.getElementById("searchModal"), { nonModal: true });
     document.getElementById("searchInput").focus();
   });
   document.getElementById("mapsIconBtn").addEventListener("click", () => {
     renderMapsGallery();
-    openModal(document.getElementById("mapsModal"));
+    openScreen(document.getElementById("mapsModal"));
   });
   document.getElementById("notepadIconBtn").addEventListener("click", () => {
     openNotepad();
@@ -1738,7 +2350,7 @@ function initUI() {
 
   document.getElementById("settingsBtn").addEventListener("click", () => {
     refreshErrorLogText();
-    openModal(document.getElementById("settingsModal"));
+    openScreen(document.getElementById("settingsModal"));
   });
 
   for (const [elId, settingKey] of SIMPLE_RENDER_TOGGLES) {
@@ -1781,16 +2393,17 @@ function initUI() {
   initDownloadControls();
   initCopyControls();
   initErrorLogControls();
+  initInstallAndBackupControls();
 
   document.querySelectorAll("dialog .close-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const dialog = btn.closest("dialog");
-      if (typeof dialog.close === "function") dialog.close();
-      else dialog.removeAttribute("open");
-    });
+    btn.addEventListener("click", () => closeScreen(btn.closest("dialog")));
   });
 
-  navigateTo(state.book, state.chapter);
+  // The very first navigation on load establishes the baseline history entry
+  // via replaceState (inside navigateTo, opts.replace) rather than pushState --
+  // otherwise back from the first real screen would land on a stale/incomplete
+  // entry instead of exiting the app as expected.
+  navigateTo(state.book, state.chapter, { replace: true });
 }
 
 document.addEventListener("DOMContentLoaded", initUI);

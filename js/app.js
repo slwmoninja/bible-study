@@ -2,7 +2,7 @@
 // change from here on so a reload can be visually confirmed against what was
 // actually deployed. Distinct from service-worker.js's CACHE_VERSION (that one
 // gates the offline cache/data schema, unrelated to this app-code version).
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "1.0.1";
 
 const LOCAL_VERSION_IDS = ["ASV", "KJV", "YLT"];
 const YOUVERSION_ID = "YV"; // the app's primary/default version -- see js/youversion.js
@@ -49,8 +49,7 @@ const state = {
 function withDefault(key, value) {
   if (state.settings[key] === undefined) state.settings[key] = value;
 }
-withDefault("wifiOnly", true); // only fetch data on Wi-Fi by default
-withDefault("minimalOffWifi", true); // let the current book/chapter's text through the Wi-Fi gate
+withDefault("wifiOnly", true); // only fetch add-ons larger than 5 MB on Wi-Fi by default
 withDefault("onlineEnabled", false); // master switch revealing online-version toggles
 withDefault("versions", {});
 withDefault("showGreek", true);
@@ -1578,6 +1577,7 @@ const ADDONS = [
     checkboxId: "addonOriginalLanguagesToggle",
     progressId: "addonOriginalLanguagesProgress",
     label: "Original Languages",
+    sizeMB: 41.9,
     isOn: () => !!(state.settings.showGreek || state.settings.showHebrew),
     setOn: (on) => { state.settings.showGreek = on; state.settings.showHebrew = on; },
     urls: () => window.BOOK_META.map((b) => `data/processed/books/${b.a}.js`),
@@ -1589,6 +1589,7 @@ const ADDONS = [
     checkboxId: "addonOfflineBibleToggle",
     progressId: "addonOfflineBibleProgress",
     label: "KJV, ASV, YLT",
+    sizeMB: 12.5,
     isOn: () => !!state.settings.addonOfflineBible,
     setOn: (on) => { state.settings.addonOfflineBible = on; },
     urls: () => LOCAL_VERSION_IDS.map((v) => `data/processed/english/${v}.js`),
@@ -1600,6 +1601,7 @@ const ADDONS = [
     checkboxId: "addonWordStudyToggle",
     progressId: "addonWordStudyProgress",
     label: "Word Study",
+    sizeMB: 9.3,
     isOn: () => !!state.settings.showStudyAids,
     setOn: (on) => { state.settings.showStudyAids = on; },
     urls: () => ["data/processed/lexicon.js", "data/processed/morphology.js"],
@@ -1614,6 +1616,7 @@ const ADDONS = [
     checkboxId: "addonCommentaryHenryToggle",
     progressId: "addonCommentaryHenryProgress",
     label: "Matthew Henry's Commentary",
+    sizeMB: 397.7,
     isOn: () => !!state.settings.commentaries.henry,
     setOn: (on) => { state.settings.commentaries.henry = on; },
     urls: () => window.BOOK_META.map((b) => `data/processed/commentary/henry/${b.a}.js`),
@@ -1625,6 +1628,7 @@ const ADDONS = [
     checkboxId: "addonCommentaryJfbToggle",
     progressId: "addonCommentaryJfbProgress",
     label: "Jamieson-Fausset-Brown Commentary",
+    sizeMB: 12.8,
     isOn: () => !!state.settings.commentaries.jfb,
     setOn: (on) => { state.settings.commentaries.jfb = on; },
     urls: () => window.BOOK_META.map((b) => `data/processed/commentary/jfb/${b.a}.js`),
@@ -1633,11 +1637,15 @@ const ADDONS = [
   },
 ];
 
-async function installAddonPack(progressEl, label, tasks) {
-  const gate = NetworkGuard.checkAllowed(state.settings);
-  if (!gate.allowed) {
-    progressEl.textContent = "Blocked: \"Wi-Fi only\" is on and this device isn't on Wi-Fi.";
-    return false;
+const WIFI_ONLY_THRESHOLD_MB = 5;
+
+async function installAddonPack(progressEl, label, sizeMB, tasks) {
+  if (sizeMB > WIFI_ONLY_THRESHOLD_MB) {
+    const gate = NetworkGuard.checkAllowed(state.settings);
+    if (!gate.allowed) {
+      progressEl.textContent = "Blocked: \"Wi-Fi only\" is on and this device isn't on Wi-Fi.";
+      return false;
+    }
   }
   let done = 0;
   for (const t of tasks) {
@@ -1710,7 +1718,7 @@ function initAddonControls() {
     cb.addEventListener("change", async () => {
       if (cb.checked) {
         cb.disabled = true;
-        const ok = await installAddonPack(progressEl, addon.label, addon.tasks());
+        const ok = await installAddonPack(progressEl, addon.label, addon.sizeMB, addon.tasks());
         cb.disabled = false;
         if (ok) {
           addon.setOn(true);
@@ -1772,7 +1780,7 @@ async function warmOfflineBibleIfNeeded() {
   }
   const progressEl = document.getElementById(addon.progressId);
   if (!progressEl) return;
-  const ok = await installAddonPack(progressEl, addon.label, addon.tasks());
+  const ok = await installAddonPack(progressEl, addon.label, addon.sizeMB, addon.tasks());
   if (ok) {
     state.settings.addonConfirmed[addon.id] = true;
     saveSettings();
@@ -2598,12 +2606,6 @@ function initUI() {
   wifiToggle.checked = state.settings.wifiOnly;
   wifiToggle.addEventListener("change", () => {
     state.settings.wifiOnly = wifiToggle.checked;
-    saveSettings();
-  });
-  const minimalOffWifiToggle = document.getElementById("minimalOffWifiToggle");
-  minimalOffWifiToggle.checked = state.settings.minimalOffWifi;
-  minimalOffWifiToggle.addEventListener("change", () => {
-    state.settings.minimalOffWifi = minimalOffWifiToggle.checked;
     saveSettings();
   });
   const wifiNote = document.getElementById("wifiDetectNote");

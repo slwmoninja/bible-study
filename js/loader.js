@@ -18,9 +18,14 @@ const Loader = (() => {
 
   function loadScript(src, { minimal = false } = {}) {
     if (loaded.has(src)) return Promise.resolve();
-    if (typeof getAppSettings === "function") {
+    // Minimal loads (the current book/chapter's text, interlinear, lexicon, morphology --
+    // see renderChapter() in js/app.js) are always small (well under the 5 MB add-on
+    // threshold), so they're exempt from the Wi-Fi-only gate entirely. Only bulk add-on
+    // installs (js/app.js's installAddonPack(), which pre-checks the gate itself once up
+    // front for the whole pack) and other non-minimal loads go through NetworkGuard here.
+    if (!minimal && typeof getAppSettings === "function") {
       const settings = getAppSettings();
-      const { allowed } = minimal ? NetworkGuard.checkAllowedMinimal(settings) : NetworkGuard.checkAllowed(settings);
+      const { allowed } = NetworkGuard.checkAllowed(settings);
       if (!allowed) return Promise.reject(new WifiRequiredError());
     }
     if (inflight.has(src)) return inflight.get(src);

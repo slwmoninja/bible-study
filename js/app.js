@@ -42,11 +42,7 @@ withDefault("showNotes", true);
 withDefault("showBookArt", true);
 withDefault("deleteConfirmations", true);
 withDefault("commentaries", {});
-withDefault("addonOriginalLanguages", false);
 withDefault("addonOfflineBible", false);
-withDefault("addonWordStudy", false);
-withDefault("addonCommentaryHenry", false);
-withDefault("addonCommentaryJfb", false);
 // Set once the native install prompt resolves "accepted" (see isInstalled()) --
 // a regular browser tab that just walked through installing doesn't itself
 // switch to display-mode:standalone, so that check alone would keep showing
@@ -283,24 +279,6 @@ function versionToggleHtml(id, label) {
   return `<label class="version-toggle">
       <input type="radio" name="bibleVersion" data-id="${id}" ${checked}> ${escapeHtml(label)}
     </label>`;
-}
-
-function renderCommentaryToggles() {
-  const el = document.getElementById("commentaryToggles");
-  el.innerHTML = Object.entries(COMMENTARY_SOURCES).map(([id, label]) => {
-    const checked = state.settings.commentaries[id] ? "checked" : "";
-    return `<label class="version-toggle">
-        <input type="checkbox" data-commentary-id="${id}" ${checked}> ${escapeHtml(label)}
-      </label>`;
-  }).join("");
-
-  el.querySelectorAll("input").forEach((cb) => {
-    cb.addEventListener("change", () => {
-      state.settings.commentaries[cb.dataset.commentaryId] = cb.checked;
-      saveSettings();
-      renderChapter();
-    });
-  });
 }
 
 // Toolbar convenience dropdown: a quick version switch, mirroring the single-
@@ -1517,30 +1495,40 @@ function renderEnglishResults(container, hits, needle, showVersionTag) {
 // for that data (see js/loader.js) -- both the Cache Storage eviction below and
 // Loader.forgetAll() key off that same string, and a mismatch would silently leave
 // stale cached bytes behind (eviction) or a live entry stuck un-refetchable (forget).
+// isOn()/setOn() read and write the *real* underlying setting for each feature (the
+// same flags renderChapter() already checks) rather than a separate install-only flag
+// -- these checkboxes are the single on/off switch for both "download this for offline
+// use" and "show it while reading" (see the removed Original languages/Commentary/Word
+// study popovers sections they replace). Offline Bible has no reading-view counterpart
+// (which version is displayed is a separate choice in Settings > Bible versions), so it
+// keeps its own dedicated flag.
 const ADDONS = [
   {
-    key: "addonOriginalLanguages",
     checkboxId: "addonOriginalLanguagesToggle",
     progressId: "addonOriginalLanguagesProgress",
     label: "Original Languages",
+    isOn: () => !!(state.settings.showGreek || state.settings.showHebrew),
+    setOn: (on) => { state.settings.showGreek = on; state.settings.showHebrew = on; },
     urls: () => window.BOOK_META.map((b) => `data/processed/books/${b.a}.js`),
     tasks: () => window.BOOK_META.map((b) => ({ name: b.n, run: () => Loader.interlinear(b.a) })),
     clearMemory: () => { window.INTERLINEAR = {}; },
   },
   {
-    key: "addonOfflineBible",
     checkboxId: "addonOfflineBibleToggle",
     progressId: "addonOfflineBibleProgress",
     label: "Offline Bible",
+    isOn: () => !!state.settings.addonOfflineBible,
+    setOn: (on) => { state.settings.addonOfflineBible = on; },
     urls: () => LOCAL_VERSION_IDS.map((v) => `data/processed/english/${v}.js`),
     tasks: () => LOCAL_VERSION_IDS.map((v) => ({ name: v, run: () => Loader.english(v) })),
     clearMemory: () => { window.BIBLE_TEXT = {}; },
   },
   {
-    key: "addonWordStudy",
     checkboxId: "addonWordStudyToggle",
     progressId: "addonWordStudyProgress",
     label: "Word Study",
+    isOn: () => !!state.settings.showStudyAids,
+    setOn: (on) => { state.settings.showStudyAids = on; },
     urls: () => ["data/processed/lexicon.js", "data/processed/morphology.js"],
     tasks: () => [
       { name: "lexicon", run: () => Loader.lexicon() },
@@ -1549,19 +1537,21 @@ const ADDONS = [
     clearMemory: () => { window.LEXICON = null; window.MORPH_CODES = null; },
   },
   {
-    key: "addonCommentaryHenry",
     checkboxId: "addonCommentaryHenryToggle",
     progressId: "addonCommentaryHenryProgress",
     label: "Matthew Henry's Commentary",
+    isOn: () => !!state.settings.commentaries.henry,
+    setOn: (on) => { state.settings.commentaries.henry = on; },
     urls: () => window.BOOK_META.map((b) => `data/processed/commentary/henry/${b.a}.js`),
     tasks: () => window.BOOK_META.map((b) => ({ name: b.n, run: () => Loader.commentary("henry", b.a) })),
     clearMemory: () => { if (window.COMMENTARY) window.COMMENTARY.henry = {}; },
   },
   {
-    key: "addonCommentaryJfb",
     checkboxId: "addonCommentaryJfbToggle",
     progressId: "addonCommentaryJfbProgress",
     label: "Jamieson-Fausset-Brown Commentary",
+    isOn: () => !!state.settings.commentaries.jfb,
+    setOn: (on) => { state.settings.commentaries.jfb = on; },
     urls: () => window.BOOK_META.map((b) => `data/processed/commentary/jfb/${b.a}.js`),
     tasks: () => window.BOOK_META.map((b) => ({ name: b.n, run: () => Loader.commentary("jfb", b.a) })),
     clearMemory: () => { if (window.COMMENTARY) window.COMMENTARY.jfb = {}; },
@@ -1619,22 +1609,24 @@ function initAddonControls() {
     const cb = document.getElementById(addon.checkboxId);
     const progressEl = document.getElementById(addon.progressId);
     if (!cb || !progressEl) continue;
-    cb.checked = !!state.settings[addon.key];
+    cb.checked = addon.isOn();
     cb.addEventListener("change", async () => {
       if (cb.checked) {
         cb.disabled = true;
         const ok = await installAddonPack(progressEl, addon.label, addon.tasks());
         cb.disabled = false;
         if (ok) {
-          state.settings[addon.key] = true;
+          addon.setOn(true);
           saveSettings();
+          renderChapter();
         } else {
-          cb.checked = false; // failed or blocked -- don't claim it's installed
+          cb.checked = false; // failed or blocked -- don't claim it's on
         }
       } else {
         removeAddonPack(progressEl, addon.label, addon.urls(), addon.clearMemory);
-        state.settings[addon.key] = false;
+        addon.setOn(false);
         saveSettings();
+        renderChapter();
       }
     });
   }
@@ -2075,7 +2067,7 @@ function reinstallApp() {
   // Wipes every cached byte above, including whatever Add On Features were
   // installed -- clear their checkboxes' backing flags too so Settings doesn't
   // keep claiming data is present that a fresh load will no longer find cached.
-  for (const addon of ADDONS) state.settings[addon.key] = false;
+  for (const addon of ADDONS) addon.setOn(false);
   saveSettings();
   try { localStorage.setItem("bibleAppPendingReinstallToast", "1"); } catch (e) {}
   location.href = location.pathname + "?_reinstall=" + Date.now();
@@ -2388,9 +2380,6 @@ function initInstallAndBackupControls() {
 
 // Checkbox settings that just flip a boolean and re-render the chapter.
 const SIMPLE_RENDER_TOGGLES = [
-  ["showGreekToggle", "showGreek"],
-  ["showHebrewToggle", "showHebrew"],
-  ["showStudyAidsToggle", "showStudyAids"],
   ["showTranslitToggle", "showTranslit"],
   ["showWordGlossToggle", "showWordGloss"],
 ];
@@ -2451,7 +2440,6 @@ function initUI() {
   }
 
   initYouVersionSettings();
-  renderCommentaryToggles();
 
   const deleteConfirmToggle = document.getElementById("deleteConfirmationsToggle");
   deleteConfirmToggle.checked = state.settings.deleteConfirmations;

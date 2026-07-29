@@ -150,6 +150,7 @@ header.topbar {
 }
 
 .title-sub {
+  font: inherit;
   font-size: 0.75rem;
   font-weight: normal;
   color: var(--highlight);
@@ -160,7 +161,13 @@ header.topbar {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
 }
+.title-sub:hover, .title-sub:active { opacity: 1; }
 
 .controls-row {
   display: flex;

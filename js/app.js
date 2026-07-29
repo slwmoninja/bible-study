@@ -2450,6 +2450,13 @@ function initUI() {
   document.getElementById("coolIconBtn").addEventListener("click", () => {
     showTodaysArtifact();
   });
+  // The subtitle truncates with an ellipsis on narrow screens (see .title-sub in
+  // css/style.css) -- tapping it shows the full text in the reusable info popup,
+  // dismissible via its own close button like every other info modal.
+  const titleSubBtn = document.getElementById("titleSubBtn");
+  titleSubBtn.addEventListener("click", () => {
+    openInfoModal("Your Bible Study App", `<p>${escapeHtml(titleSubBtn.textContent)}</p>`);
+  });
 
   document.getElementById("settingsBtn").addEventListener("click", () => {
     refreshErrorLogText();

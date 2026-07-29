@@ -36,7 +36,7 @@ window.BOOK_ART = {
     "isExcavation": false
   },
   "Mat": {
-    "title": "The Nativity Story",
+    "title": "Unto us a child is born",
     "artist": null,
     "thumbUrl": "data/art/nativity.jpg",
     "sourceUrl": "data/art/nativity.jpg",

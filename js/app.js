@@ -42,6 +42,11 @@ withDefault("showNotes", true);
 withDefault("showBookArt", true);
 withDefault("deleteConfirmations", true);
 withDefault("commentaries", {});
+withDefault("addonOriginalLanguages", false);
+withDefault("addonOfflineBible", false);
+withDefault("addonWordStudy", false);
+withDefault("addonCommentaryHenry", false);
+withDefault("addonCommentaryJfb", false);
 // Set once the native install prompt resolves "accepted" (see isInstalled()) --
 // a regular browser tab that just walked through installing doesn't itself
 // switch to display-mode:standalone, so that check alone would keep showing
@@ -1506,30 +1511,133 @@ function renderEnglishResults(container, hits, needle, showVersionTag) {
   });
 }
 
-// ---------- Offline downloads ----------
+// ---------- Add-on features (bulk install/remove of large data packs) ----------
 
-async function downloadAllInterlinear(progressEl) {
+// Each entry's urls() must exactly match the relative src Loader.* actually requests
+// for that data (see js/loader.js) -- both the Cache Storage eviction below and
+// Loader.forgetAll() key off that same string, and a mismatch would silently leave
+// stale cached bytes behind (eviction) or a live entry stuck un-refetchable (forget).
+const ADDONS = [
+  {
+    key: "addonOriginalLanguages",
+    checkboxId: "addonOriginalLanguagesToggle",
+    progressId: "addonOriginalLanguagesProgress",
+    label: "Original Languages",
+    urls: () => window.BOOK_META.map((b) => `data/processed/books/${b.a}.js`),
+    tasks: () => window.BOOK_META.map((b) => ({ name: b.n, run: () => Loader.interlinear(b.a) })),
+    clearMemory: () => { window.INTERLINEAR = {}; },
+  },
+  {
+    key: "addonOfflineBible",
+    checkboxId: "addonOfflineBibleToggle",
+    progressId: "addonOfflineBibleProgress",
+    label: "Offline Bible",
+    urls: () => LOCAL_VERSION_IDS.map((v) => `data/processed/english/${v}.js`),
+    tasks: () => LOCAL_VERSION_IDS.map((v) => ({ name: v, run: () => Loader.english(v) })),
+    clearMemory: () => { window.BIBLE_TEXT = {}; },
+  },
+  {
+    key: "addonWordStudy",
+    checkboxId: "addonWordStudyToggle",
+    progressId: "addonWordStudyProgress",
+    label: "Word Study",
+    urls: () => ["data/processed/lexicon.js", "data/processed/morphology.js"],
+    tasks: () => [
+      { name: "lexicon", run: () => Loader.lexicon() },
+      { name: "morphology", run: () => Loader.morphology() },
+    ],
+    clearMemory: () => { window.LEXICON = null; window.MORPH_CODES = null; },
+  },
+  {
+    key: "addonCommentaryHenry",
+    checkboxId: "addonCommentaryHenryToggle",
+    progressId: "addonCommentaryHenryProgress",
+    label: "Matthew Henry's Commentary",
+    urls: () => window.BOOK_META.map((b) => `data/processed/commentary/henry/${b.a}.js`),
+    tasks: () => window.BOOK_META.map((b) => ({ name: b.n, run: () => Loader.commentary("henry", b.a) })),
+    clearMemory: () => { if (window.COMMENTARY) window.COMMENTARY.henry = {}; },
+  },
+  {
+    key: "addonCommentaryJfb",
+    checkboxId: "addonCommentaryJfbToggle",
+    progressId: "addonCommentaryJfbProgress",
+    label: "Jamieson-Fausset-Brown Commentary",
+    urls: () => window.BOOK_META.map((b) => `data/processed/commentary/jfb/${b.a}.js`),
+    tasks: () => window.BOOK_META.map((b) => ({ name: b.n, run: () => Loader.commentary("jfb", b.a) })),
+    clearMemory: () => { if (window.COMMENTARY) window.COMMENTARY.jfb = {}; },
+  },
+];
+
+async function installAddonPack(progressEl, label, tasks) {
   const gate = NetworkGuard.checkAllowed(state.settings);
   if (!gate.allowed) {
     progressEl.textContent = "Blocked: \"Wi-Fi only\" is on and this device isn't on Wi-Fi.";
-    return;
+    return false;
   }
-  const books = window.BOOK_META;
   let done = 0;
-  for (const b of books) {
-    progressEl.textContent = `Downloading ${b.n}… (${done}/${books.length})`;
+  for (const t of tasks) {
+    progressEl.textContent = `Downloading ${label}… (${done}/${tasks.length})`;
     try {
-      await Loader.interlinear(b.a);
+      await t.run();
     } catch (e) {
       progressEl.textContent = e instanceof WifiRequiredError
         ? "Blocked: \"Wi-Fi only\" is on and this device isn't on Wi-Fi."
-        : `Failed on ${b.n}: ${e.message}`;
-      ErrorLog.record(progressEl.textContent, "download all");
-      return;
+        : `Failed on ${t.name}: ${e.message}`;
+      ErrorLog.record(progressEl.textContent, "install " + label);
+      return false;
     }
     done++;
   }
-  progressEl.textContent = `Done — all ${books.length} books downloaded for offline use.`;
+  progressEl.textContent = `${label} installed (${tasks.length}/${tasks.length}).`;
+  return true;
+}
+
+// Deletes specific cached URLs out of whatever Cache Storage bucket(s) actually hold
+// them, rather than assuming this page's copy of CACHE_VERSION -- the service worker
+// owns that name and bumps it independently, so reaching in by name from here could
+// silently miss the real bucket. Sweeping every bucket is cheap (there's normally only
+// ever one live one; activate() in service-worker.js evicts the rest) and can't evict
+// too much since it only ever deletes these exact URLs, never a whole cache.
+async function evictFromCache(urls) {
+  if (!(window.caches && caches.keys)) return;
+  const names = await caches.keys();
+  for (const name of names) {
+    const cache = await caches.open(name);
+    for (const url of urls) await cache.delete(url);
+  }
+}
+
+function removeAddonPack(progressEl, label, urls, clearMemory) {
+  evictFromCache(urls);
+  Loader.forgetAll(urls);
+  clearMemory();
+  progressEl.textContent = `${label} removed — space freed up.`;
+}
+
+function initAddonControls() {
+  for (const addon of ADDONS) {
+    const cb = document.getElementById(addon.checkboxId);
+    const progressEl = document.getElementById(addon.progressId);
+    if (!cb || !progressEl) continue;
+    cb.checked = !!state.settings[addon.key];
+    cb.addEventListener("change", async () => {
+      if (cb.checked) {
+        cb.disabled = true;
+        const ok = await installAddonPack(progressEl, addon.label, addon.tasks());
+        cb.disabled = false;
+        if (ok) {
+          state.settings[addon.key] = true;
+          saveSettings();
+        } else {
+          cb.checked = false; // failed or blocked -- don't claim it's installed
+        }
+      } else {
+        removeAddonPack(progressEl, addon.label, addon.urls(), addon.clearMemory);
+        state.settings[addon.key] = false;
+        saveSettings();
+      }
+    });
+  }
 }
 
 // ---------- Error log ----------
@@ -1549,21 +1657,6 @@ function initErrorLogControls() {
     ErrorLog.clear();
     refreshErrorLogText();
     document.getElementById("errorLogStatus").textContent = "Cleared.";
-  });
-}
-
-function initDownloadControls() {
-  const btn = document.getElementById("downloadAllBtn");
-  const progressEl = document.getElementById("downloadProgress");
-  btn.addEventListener("click", async () => {
-    btn.disabled = true;
-    await Promise.all([
-      downloadAllInterlinear(progressEl),
-      Loader.lexicon(),
-      Loader.morphology(),
-      Loader.searchIndex(),
-    ]);
-    btn.disabled = false;
   });
 }
 
@@ -1979,6 +2072,11 @@ function reinstallApp() {
   if (window.caches && caches.keys) {
     caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
   }
+  // Wipes every cached byte above, including whatever Add On Features were
+  // installed -- clear their checkboxes' backing flags too so Settings doesn't
+  // keep claiming data is present that a fresh load will no longer find cached.
+  for (const addon of ADDONS) state.settings[addon.key] = false;
+  saveSettings();
   try { localStorage.setItem("bibleAppPendingReinstallToast", "1"); } catch (e) {}
   location.href = location.pathname + "?_reinstall=" + Date.now();
 }
@@ -2295,9 +2393,6 @@ const SIMPLE_RENDER_TOGGLES = [
   ["showStudyAidsToggle", "showStudyAids"],
   ["showTranslitToggle", "showTranslit"],
   ["showWordGlossToggle", "showWordGloss"],
-  ["showArchaeologyToggle", "showArchaeology"],
-  ["showNotesToggle", "showNotes"],
-  ["showBookArtToggle", "showBookArt"],
 ];
 
 function initUI() {
@@ -2382,7 +2477,7 @@ function initUI() {
     ? ""
     : "Note: this browser can't report Wi-Fi vs. cellular, so downloads won't be blocked even with this on.";
 
-  initDownloadControls();
+  initAddonControls();
   initCopyControls();
   initErrorLogControls();
   initInstallAndBackupControls();

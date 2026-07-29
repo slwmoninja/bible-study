@@ -58,6 +58,13 @@ const Loader = (() => {
   }
 
   return {
+    // Un-does loadScript's own dedup bookkeeping for the given srcs -- needed after an
+    // add-on's data is evicted from Cache Storage (see removeAddonPack in app.js), so a
+    // later re-visit actually re-issues the <script> tag instead of resolving instantly
+    // against a load that no longer has anywhere to read data from.
+    forgetAll(srcs) {
+      srcs.forEach((s) => { loaded.delete(s); inflight.delete(s); });
+    },
     english(version, opts) {
       if (window.BIBLE_TEXT && window.BIBLE_TEXT[version]) return Promise.resolve();
       return loadScript(`data/processed/english/${version}.js`, opts);

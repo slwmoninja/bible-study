@@ -7,6 +7,9 @@
 <meta name="description" content="Bible study app with original Greek/Hebrew interlinear, classic commentaries, personal notes, multilingual search, and archaeology links.">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#6b1f2a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -238,11 +241,12 @@
 
     <h3>Bible versions</h3>
     <p class="settings-note">Choose one version to read.</p>
-    <div class="settings-row">
-      <input type="radio" name="bibleVersion" id="youversionToggle">
-      <label for="youversionToggle">NIV</label>
+    <div class="version-toggle-group">
+      <label class="version-toggle">
+        <input type="radio" name="bibleVersion" id="youversionToggle"> NIV
+      </label>
+      <span id="versionTogglesLocal" style="display:contents"></span>
     </div>
-    <div class="version-toggle-group" id="versionTogglesLocal"></div>
 
     <hr class="settings-divider">
 
@@ -276,19 +280,6 @@
       <input type="checkbox" id="showWordGlossToggle">
       <label for="showWordGlossToggle">Word-by-word English gloss under interlinear words</label>
     </div>
-    <div class="settings-row">
-      <input type="checkbox" id="showArchaeologyToggle">
-      <label for="showArchaeologyToggle">Archaeology &amp; historical photo links</label>
-    </div>
-    <div class="settings-row">
-      <input type="checkbox" id="showNotesToggle">
-      <label for="showNotesToggle">Personal notes (pen cursor, double-click/double-tap to add)</label>
-    </div>
-    <div class="settings-row">
-      <input type="checkbox" id="showBookArtToggle">
-      <label for="showBookArtToggle">Book header illustrations</label>
-    </div>
-
     <hr class="settings-divider">
 
     <h3>Delete Confirmations</h3>
@@ -310,8 +301,35 @@
       <label for="minimalOffWifiToggle">Download minimal book/chapter text off Wi-Fi</label>
     </div>
 
-    <button id="downloadAllBtn">Download entire Bible for offline use (~42 MB)</button>
-    <p id="downloadProgress" class="settings-note"></p>
+    <hr class="settings-divider">
+
+    <h3>Add On Features</h3>
+    <p class="settings-note">Each one downloads for offline use when checked, and deletes that data to free up space when unchecked.</p>
+    <div class="settings-row">
+      <input type="checkbox" id="addonOriginalLanguagesToggle">
+      <label for="addonOriginalLanguagesToggle">Original Languages (Greek &amp; Hebrew text, transliteration, word-for-word gloss) &mdash; 41.9 MB</label>
+    </div>
+    <p id="addonOriginalLanguagesProgress" class="settings-note"></p>
+    <div class="settings-row">
+      <input type="checkbox" id="addonOfflineBibleToggle">
+      <label for="addonOfflineBibleToggle">Offline Bible (KJV, ASV, YLT) &mdash; 12.5 MB</label>
+    </div>
+    <p id="addonOfflineBibleProgress" class="settings-note"></p>
+    <div class="settings-row">
+      <input type="checkbox" id="addonWordStudyToggle">
+      <label for="addonWordStudyToggle">Word Study (lexicon &amp; grammar definitions) &mdash; 9.3 MB</label>
+    </div>
+    <p id="addonWordStudyProgress" class="settings-note"></p>
+    <div class="settings-row">
+      <input type="checkbox" id="addonCommentaryHenryToggle">
+      <label for="addonCommentaryHenryToggle">Matthew Henry's Commentary (1710) &mdash; 397.7 MB</label>
+    </div>
+    <p id="addonCommentaryHenryProgress" class="settings-note"></p>
+    <div class="settings-row">
+      <input type="checkbox" id="addonCommentaryJfbToggle">
+      <label for="addonCommentaryJfbToggle">Jamieson-Fausset-Brown Commentary (1871) &mdash; 12.8 MB</label>
+    </div>
+    <p id="addonCommentaryJfbProgress" class="settings-note"></p>
 
     <hr class="settings-divider">
 
@@ -327,7 +345,6 @@
     <hr class="settings-divider">
 
     <h3>Backup &amp; Restore</h3>
-    <p class="settings-note">Your notes, journal, and settings auto-save on this device as you go &mdash; this makes a separate copy you control, for the one thing that can't be protected against: deliberately clearing your browser's history/site data.</p>
     <div class="settings-row">
       <button id="backupNowBtn">Back up now</button>
       <button id="restoreBackupBtn">Restore from backup&hellip;</button>

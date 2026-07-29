@@ -1516,7 +1516,7 @@ const ADDONS = [
   {
     checkboxId: "addonOfflineBibleToggle",
     progressId: "addonOfflineBibleProgress",
-    label: "Offline Bible",
+    label: "KJV, ASV, YLT",
     isOn: () => !!state.settings.addonOfflineBible,
     setOn: (on) => { state.settings.addonOfflineBible = on; },
     urls: () => LOCAL_VERSION_IDS.map((v) => `data/processed/english/${v}.js`),

@@ -36,11 +36,11 @@ window.BOOK_ART = {
     "isExcavation": false
   },
   "Mat": {
-    "title": "Adoration of the Magi",
-    "artist": "Sandro Botticelli, c. 1475",
-    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Adoration_of_the_Magi_by_Sandro_Botticelli-Uffizi.jpg/330px-Adoration_of_the_Magi_by_Sandro_Botticelli-Uffizi.jpg",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File%3AAdoration_of_the_Magi_by_Sandro_Botticelli-Uffizi.jpg",
-    "license": "CC BY-SA 4.0",
+    "title": "The Nativity Story",
+    "artist": null,
+    "thumbUrl": "data/art/nativity.jpg",
+    "sourceUrl": "data/art/nativity.jpg",
+    "license": "Stock image",
     "isExcavation": false
   },
   "Mrk": {

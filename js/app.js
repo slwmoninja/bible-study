@@ -6,6 +6,27 @@ const APP_VERSION = "1.0.0";
 
 const LOCAL_VERSION_IDS = ["ASV", "KJV", "YLT"];
 const YOUVERSION_ID = "YV"; // the app's primary/default version -- see js/youversion.js
+
+// The app's default opening location (see the `state` initializer below) -- kept
+// persisted in NIV specifically so a brand-new user who opens the app offline for the
+// very first time on a device that's been online before doesn't land on a blank/error
+// page. This is a deliberate, narrow exception to "never persist licensed translation
+// text" (see js/youversion.js's file header): every other NIV chapter still stays
+// in-memory-only, cleared on reload.
+const DEFAULT_OFFLINE_BOOK = "Psa", DEFAULT_OFFLINE_CHAPTER = 1;
+const DEFAULT_CHAPTER_CACHE_KEY = "bibleAppDefaultChapterCache";
+async function warmDefaultChapterCache() {
+  try {
+    const verses = await YouVersionBible.fetchChapter(DEFAULT_OFFLINE_BOOK, DEFAULT_OFFLINE_CHAPTER);
+    localStorage.setItem(DEFAULT_CHAPTER_CACHE_KEY, JSON.stringify({ verses, ts: Date.now() }));
+  } catch (e) { /* offline or blocked -- next successful load tries again */ }
+}
+function readDefaultChapterCache() {
+  try {
+    const raw = localStorage.getItem(DEFAULT_CHAPTER_CACHE_KEY);
+    return raw ? JSON.parse(raw).verses : null;
+  } catch (e) { return null; }
+}
 const COMMENTARY_SOURCES = {
   henry: "Matthew Henry's Commentary (1710)",
   jfb: "Jamieson-Fausset-Brown (1871)",
@@ -42,7 +63,7 @@ withDefault("showNotes", true);
 withDefault("showBookArt", true);
 withDefault("deleteConfirmations", true);
 withDefault("commentaries", {});
-withDefault("addonOfflineBible", false);
+withDefault("addonOfflineBible", true); // default on -- see warmOfflineBibleIfNeeded()
 // Tracks, per Add On, whether the user has ever actually completed a real bulk install
 // through its checkbox -- see the reconciliation comment in initAddonControls() for why
 // this exists: a default-on preference that's never been bulk-installed (Original
@@ -378,6 +399,13 @@ async function getChapterTexts() {
         results[id] = (window.BIBLE_TEXT[id][state.book] || {})[String(state.chapter)] || {};
       }
     } catch (e) {
+      // The one deliberate offline fallback: NIV on the app's default landing
+      // chapter falls back to the persisted copy from warmDefaultChapterCache()
+      // rather than erroring, so a brand-new offline launch isn't a blank page.
+      if (id === YOUVERSION_ID && meta.a === DEFAULT_OFFLINE_BOOK && state.chapter === DEFAULT_OFFLINE_CHAPTER) {
+        const fallback = readDefaultChapterCache();
+        if (fallback) { results[id] = fallback; return; }
+      }
       // Don't fail the whole render over one version's error -- other active
       // versions may still have text -- but remember why, so a total failure
       // (e.g. the only active version) can show a helpful message instead of
@@ -1691,6 +1719,33 @@ function initAddonControls() {
   }
 }
 
+// Offline Bible defaults on, but unlike Original Languages/Word Study (which fall back
+// fine on ordinary per-chapter lazy loading even if never bulk-installed), there's no
+// "just works offline anyway" safety net here without an actual completed install --
+// KJV/ASV/YLT only ever load per-chapter on demand otherwise. So a user who's never
+// explicitly touched this checkbox gets the real bulk install run for them once,
+// automatically, the same way warmDefaultChapterCache() protects the NIV default
+// landing chapter. Respects the Wi-Fi-only setting via installAddonPack() as normal --
+// this is a real network fetch, not exempt from that gate just because it's automatic.
+async function warmOfflineBibleIfNeeded() {
+  const addon = ADDONS.find((a) => a.id === "offlineBible");
+  if (!addon || !addon.isOn() || state.settings.addonConfirmed[addon.id]) return;
+  if (await isAddonInstalled(addon.urls())) {
+    state.settings.addonConfirmed[addon.id] = true;
+    saveSettings();
+    return;
+  }
+  const progressEl = document.getElementById(addon.progressId);
+  if (!progressEl) return;
+  const ok = await installAddonPack(progressEl, addon.label, addon.tasks());
+  if (ok) {
+    state.settings.addonConfirmed[addon.id] = true;
+    saveSettings();
+    const cb = document.getElementById(addon.checkboxId);
+    if (cb) cb.checked = true;
+  }
+}
+
 // ---------- Error log ----------
 
 function refreshErrorLogText() {
@@ -1979,6 +2034,8 @@ checkForUpdate();
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") checkForUpdate();
 });
+warmDefaultChapterCache();
+warmOfflineBibleIfNeeded();
 
 // ---------- Storage persistence ----------
 // Best-effort ask not to auto-evict this site's storage under low-disk

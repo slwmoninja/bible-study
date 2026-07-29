@@ -73,7 +73,15 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return; // checkForUpdate()'s HEAD ping, any future POSTs -- straight through, untouched
 
   const url = new URL(req.url);
-  const isNavigation = req.mode === "navigate";
+  const scopeUrl = new URL(self.registration.scope);
+  // Only the app's own root/index.html counts as "the shell" -- a navigation to some
+  // other same-origin URL (e.g. a book-art image opened in a new tab via target="_blank")
+  // must NOT be coerced to it, or the tab renders the SPA shell (with all its relative
+  // asset paths broken, since they're now resolved against that other URL) instead of
+  // the thing actually being navigated to.
+  const isShellPath = url.origin === scopeUrl.origin &&
+    (url.pathname === scopeUrl.pathname || url.pathname === scopeUrl.pathname + "index.html");
+  const isNavigation = req.mode === "navigate" && isShellPath;
   const isStaticData = url.pathname.includes("/data/processed/") || url.origin !== location.origin;
 
   if (!isStaticData) {

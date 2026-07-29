@@ -2379,11 +2379,6 @@ function initInstallAndBackupControls() {
 // ---------- Wiring ----------
 
 // Checkbox settings that just flip a boolean and re-render the chapter.
-const SIMPLE_RENDER_TOGGLES = [
-  ["showTranslitToggle", "showTranslit"],
-  ["showWordGlossToggle", "showWordGloss"],
-];
-
 function initUI() {
   populateBookSelect();
   populateChapterSelect();
@@ -2428,16 +2423,6 @@ function initUI() {
     refreshErrorLogText();
     openScreen(document.getElementById("settingsModal"));
   });
-
-  for (const [elId, settingKey] of SIMPLE_RENDER_TOGGLES) {
-    const el = document.getElementById(elId);
-    el.checked = state.settings[settingKey];
-    el.addEventListener("change", () => {
-      state.settings[settingKey] = el.checked;
-      saveSettings();
-      renderChapter();
-    });
-  }
 
   initYouVersionSettings();
 

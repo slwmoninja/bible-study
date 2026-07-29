@@ -250,40 +250,7 @@
 
     <hr class="settings-divider">
 
-    <h3>Study &amp; reading resources</h3>
-    <div class="settings-row">
-      <input type="checkbox" id="showTranslitToggle">
-      <label for="showTranslitToggle">Transliteration under interlinear words</label>
-    </div>
-    <div class="settings-row">
-      <input type="checkbox" id="showWordGlossToggle">
-      <label for="showWordGlossToggle">Word-by-word English gloss under interlinear words</label>
-    </div>
-    <hr class="settings-divider">
-
-    <h3>Delete Confirmations</h3>
-    <div class="settings-row">
-      <input type="checkbox" id="deleteConfirmationsToggle">
-      <label for="deleteConfirmationsToggle">Ask before deleting notes or notepad entries</label>
-    </div>
-
-    <hr class="settings-divider">
-
-    <h3>Network</h3>
-    <div class="settings-row">
-      <input type="checkbox" id="wifiOnlyToggle">
-      <label for="wifiOnlyToggle">Only download data on Wi-Fi</label>
-    </div>
-    <p id="wifiDetectNote" class="settings-note"></p>
-    <div class="settings-row">
-      <input type="checkbox" id="minimalOffWifiToggle">
-      <label for="minimalOffWifiToggle">Download minimal book/chapter text off Wi-Fi</label>
-    </div>
-
-    <hr class="settings-divider">
-
     <h3>Add On Features</h3>
-    <p class="settings-note">Each one turns that feature on and downloads it for offline use when checked, and turns it off and deletes that data to free up space when unchecked.</p>
     <div class="settings-row">
       <input type="checkbox" id="addonOriginalLanguagesToggle">
       <label for="addonOriginalLanguagesToggle">Original Languages (Greek &amp; Hebrew text, transliteration, word-for-word gloss) &mdash; 41.9 MB</label>
@@ -323,7 +290,20 @@
 
     <hr class="settings-divider">
 
-    <h3>Backup &amp; Restore</h3>
+    <h3>Data</h3>
+    <div class="settings-row">
+      <input type="checkbox" id="deleteConfirmationsToggle">
+      <label for="deleteConfirmationsToggle">Ask before deleting notes or notepad entries</label>
+    </div>
+    <div class="settings-row">
+      <input type="checkbox" id="wifiOnlyToggle">
+      <label for="wifiOnlyToggle">Only download data on Wi-Fi</label>
+    </div>
+    <p id="wifiDetectNote" class="settings-note"></p>
+    <div class="settings-row">
+      <input type="checkbox" id="minimalOffWifiToggle">
+      <label for="minimalOffWifiToggle">Download minimal book/chapter text off Wi-Fi</label>
+    </div>
     <div class="settings-row">
       <button id="backupNowBtn">Back up now</button>
       <button id="restoreBackupBtn">Restore from backup&hellip;</button>

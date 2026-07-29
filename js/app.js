@@ -1873,32 +1873,24 @@ function isStandaloneApp() {
 function isInstalled() {
   return isStandaloneApp() || !!state.settings.installPromptAccepted;
 }
-// Shown top-right on the main reading screen (same row as the app title) and
-// inside Settings' modal-header (same row as the "Settings" heading). Once
-// actually installed there's nothing left to act on from the reading screen,
-// so it disappears there; Settings passes keepAfterInstall=true to keep
-// showing it as an inert "Installed" status line instead, since that's the
-// one place people go to confirm state. Not a real <button disabled> once
-// installed -- it stays enabled (a plain tap just no-ops, see wireInstallBtn)
-// so it can still receive the long-press that opens Re-Install/Uninstall.
-function installBtnHtml(id, keepAfterInstall) {
+// Shown only inside Settings' modal-header (same row as the "Settings"
+// heading) -- that's the one place people go to confirm install state, so it
+// stays visible even once installed, switching to an inert "Installed" status
+// line instead of disappearing. Not a real <button disabled> once installed --
+// it stays enabled (a plain tap just no-ops, see wireInstallBtn) so it can
+// still receive the long-press that opens Re-Install/Uninstall.
+function installPillHtml(id) {
   const installed = isInstalled();
-  if (installed && !keepAfterInstall) return "";
   return `<button class="topbar-install-btn${installed ? " installed" : ""}" id="${id}">${installed ? "Installed" : "Install"}</button>`;
 }
-// Re-renders both Install pill slots (main topbar + Settings) and rewires
-// their handlers -- called on load and after anything that can change
-// isInstalled()'s answer (beforeinstallprompt arriving, appinstalled firing,
-// an accepted manual/native prompt, Re-Install, Uninstall).
+// Re-renders the Install pill and rewires its handlers -- called on load and
+// after anything that can change isInstalled()'s answer (beforeinstallprompt
+// arriving, appinstalled firing, an accepted manual/native prompt, Re-Install,
+// Uninstall).
 function renderInstallUI() {
-  const topbarSlot = document.getElementById("topbarInstallSlot");
-  if (topbarSlot) {
-    topbarSlot.innerHTML = installBtnHtml("topbarInstallBtn", false);
-    wireInstallBtn("topbarInstallBtn");
-  }
   const settingsSlot = document.getElementById("settingsInstallSlot");
   if (settingsSlot) {
-    settingsSlot.innerHTML = installBtnHtml("settingsInstallBtn", true);
+    settingsSlot.innerHTML = installPillHtml("settingsInstallBtn");
     wireInstallBtn("settingsInstallBtn");
   }
 }

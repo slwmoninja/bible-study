@@ -17,9 +17,6 @@
 
 <header class="topbar">
   <div class="topbar-actions">
-    <!-- Populated by renderInstallUI() in js/app.js -- empty once installed (nothing
-         left to do from the main reading screen; Settings keeps showing status). -->
-    <span id="topbarInstallSlot"></span>
     <button id="settingsBtn" class="icon-btn" title="Settings" aria-label="Settings">
       <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">
         <circle cx="12" cy="12" r="6.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
@@ -229,9 +226,10 @@
   <div class="modal-header">
     <h2>Settings</h2>
     <div class="modal-header-actions">
-      <!-- Populated by renderInstallUI() -- always shown here (even once installed,
-           as an inert "Installed" status line), unlike the topbar pill which
-           disappears once there's nothing left to act on. -->
+      <!-- Populated by renderInstallUI() -- the only place this pill ever appears.
+           Stays visible even once installed, as an inert "Installed" status line
+           (see installPillHtml() in js/app.js), since Settings is where people
+           come to check state. -->
       <span id="settingsInstallSlot"></span>
       <button class="close-btn" aria-label="Close">&times;</button>
     </div>
@@ -312,7 +310,7 @@
       <label for="minimalOffWifiToggle">Download minimal book/chapter text off Wi-Fi</label>
     </div>
 
-    <button id="downloadAllBtn">Download entire Bible for offline use</button>
+    <button id="downloadAllBtn">Download entire Bible for offline use (~42 MB)</button>
     <p id="downloadProgress" class="settings-note"></p>
 
     <hr class="settings-divider">

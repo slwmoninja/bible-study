@@ -63,9 +63,8 @@ header.topbar {
 }
 .icon-btn:hover { background: rgba(0,0,0,0.4); }
 
-/* Top-right cluster: the Install pill (see #topbarInstallSlot in js/app.js'
-   renderInstallUI) sits just left of the Settings gear, both pinned to the
-   corner as one group. */
+/* Top-right corner: just the Settings gear now -- the Install pill lives only
+   in Settings' own modal-header (see #settingsInstallSlot below). */
 .topbar-actions {
   position: absolute;
   top: 0.5rem;
@@ -76,10 +75,10 @@ header.topbar {
   gap: 0.4rem;
 }
 
-/* "Install"/"Installed" pill -- shown top-right on the main reading screen
-   (disappears once installed, nothing left to act on there) and inside
-   Settings' modal-header (kept as an inert status line even once installed --
-   see installBtnHtml()/renderInstallUI() in js/app.js). Not a real
+/* "Install"/"Installed" pill -- shown only inside Settings' modal-header (same
+   row as the "Settings" heading), kept visible as an inert status line even
+   once installed (see installPillHtml()/renderInstallUI() in js/app.js), since
+   Settings is the one place people go to confirm state. Not a real
    <button disabled> once installed -- it stays enabled (a tap just no-ops)
    so it can still receive the long-press that opens Re-Install/Uninstall. */
 .topbar-install-btn {
@@ -133,7 +132,7 @@ header.topbar {
   align-items: baseline;
   justify-content: space-between;
   gap: 0.6rem;
-  padding-right: 7.6rem; /* keep clear of the top-right Install pill + settings gear cluster */
+  padding-right: 2.5rem; /* keep clear of the settings gear in the top-right */
   margin: 0 0 0.5rem 0;
 }
 
@@ -1101,9 +1100,7 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
   .version-attribution-item { font-size: 0.6rem; padding: 0.05rem 0.25rem; }
   .verses { font-size: 1.05rem; }
   .interlinear-row { margin-left: 0.5rem; }
-  /* Tighter top-right cluster on narrow phones, so the pill + gear don't eat
-     too much of the topbar-title row. */
-  .topbar-title { padding-right: 6.4rem; }
+  /* Slightly more compact Install pill in Settings' modal-header on narrow phones. */
   .topbar-install-btn { font-size: 0.68rem; padding: 0.26rem 0.55rem; }
 }
 

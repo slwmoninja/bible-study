@@ -1604,6 +1604,28 @@ function removeAddonPack(progressEl, label, urls, clearMemory) {
   progressEl.textContent = `${label} removed — space freed up.`;
 }
 
+// Ground truth for whether a pack is actually installed: every one of its URLs has to
+// be sitting in Cache Storage right now, not just "the last time we successfully ran
+// installAddonPack() we said so." A persisted flag can drift from reality -- the
+// browser evicting storage under pressure, a user clearing site data by hand, an
+// install that got interrupted partway -- so this is what initAddonControls() trusts
+// to correct the checkbox (and the paired setting) rather than the flag alone.
+async function isAddonInstalled(urls) {
+  if (!urls.length) return false;
+  if (!(window.caches && caches.keys)) return false;
+  const names = await caches.keys();
+  const buckets = [];
+  for (const name of names) buckets.push(await caches.open(name));
+  for (const url of urls) {
+    let found = false;
+    for (const cache of buckets) {
+      if (await cache.match(url)) { found = true; break; }
+    }
+    if (!found) return false;
+  }
+  return true;
+}
+
 function initAddonControls() {
   for (const addon of ADDONS) {
     const cb = document.getElementById(addon.checkboxId);
@@ -1628,6 +1650,16 @@ function initAddonControls() {
         saveSettings();
         renderChapter();
       }
+    });
+
+    // Reconcile the checkbox (and the setting it drives) against actual Cache Storage
+    // state once at load, in case they've drifted -- see isAddonInstalled() above.
+    isAddonInstalled(addon.urls()).then((installed) => {
+      if (installed === addon.isOn()) return;
+      addon.setOn(installed);
+      saveSettings();
+      cb.checked = installed;
+      renderChapter();
     });
   }
 }

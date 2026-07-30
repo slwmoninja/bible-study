@@ -129,7 +129,7 @@ header.topbar {
 
 .topbar-title {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 0.6rem;
   padding-right: 2.5rem; /* keep clear of the settings gear in the top-right */
@@ -137,16 +137,12 @@ header.topbar {
 }
 
 .title-main {
-  font-size: 1.3rem;
-  font-weight: bold;
-  letter-spacing: 0.04em;
-  color: var(--gold-bright);
-  /* Subtle embossed/engraved 3D feel: a faint light bevel above, a soft dark
-     depth shadow below -- restrained, not a heavy drop-shadow effect. */
-  text-shadow:
-    0 -1px 0 rgba(255,248,230,0.3),
-    0 1px 1px rgba(0,0,0,0.55),
-    0 2px 3px rgba(0,0,0,0.4);
+  height: 2.4rem;
+  width: auto;
+  flex-shrink: 0;
+  /* Same grounding depth the text title used to have, now as a drop-shadow
+     under the transparent-background icon instead of a text-shadow. */
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4));
 }
 
 .title-sub {

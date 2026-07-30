@@ -2,8 +2,20 @@
 // after the first visit. Book/lexicon/search data files fetched on demand are cached
 // opportunistically as they're loaded (runtime cache), growing offline coverage over time.
 //
-// Two different caching strategies live in the fetch handler below, split by content type:
-//  - App shell (index.html, manifest.json, css/js, and the small top-level data/*.js
+// Three different caching strategies live in the fetch handler below, split by content type:
+//  - manifest.json and the icon-192/512.png files get network-first (fall back to cache
+//    only if offline). Android/Chrome's installed-PWA (WebAPK) icon updates -- both the
+//    periodic silent background check on an existing install, and a fresh "Add to Home
+//    Screen" after an uninstall -- read this manifest client-side first to decide whether
+//    anything changed; Chrome does NOT re-fetch/uninstall Chrome's own site data (service
+//    worker + Cache Storage survive an Android "uninstall" of the WebAPK, since that data
+//    belongs to the browser profile, not the WebAPK package), so a stale cached manifest/
+//    icon here would make a freshly-reinstalled icon look stale too. Chrome also only
+//    re-checks an icon at all when its URL in the manifest changes (it compares the
+//    icons array, not pixel bytes) -- see sync_cache_version.py, which appends a
+//    content-hash query string to the icon src values in manifest.json whenever the
+//    icon files themselves change, so a new icon always gets a new URL to trigger this.
+//  - The rest of the app shell (index.html, css/js, and the small top-level data/*.js
 //    metadata files) changes on every deploy, so it's served stale-while-revalidate:
 //    the cached copy answers instantly, and a background fetch refreshes the cache for
 //    next time. This is also what makes index.html's own checkForUpdate() (a separate
@@ -19,7 +31,7 @@
 //    cached forever once fetched, the original cache-first behavior: re-validating
 //    unchanging multi-megabyte text on every load would burn mobile data for no
 //    benefit, working directly against the app's own "Wi-Fi only" setting.
-const CACHE_VERSION = "bible-study-8930cbac894d";
+const CACHE_VERSION = "bible-study-e855b256fd60";
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -82,7 +94,28 @@ self.addEventListener("fetch", (event) => {
   const isShellPath = url.origin === scopeUrl.origin &&
     (url.pathname === scopeUrl.pathname || url.pathname === scopeUrl.pathname + "index.html");
   const isNavigation = req.mode === "navigate" && isShellPath;
+  const isManifestOrIcon = url.origin === scopeUrl.origin &&
+    (url.pathname === scopeUrl.pathname + "manifest.json" || /\/icons\/icon-(192|512)\.png$/.test(url.pathname));
   const isStaticData = url.pathname.includes("/data/processed/") || url.origin !== location.origin;
+
+  if (isManifestOrIcon) {
+    // Network-first -- see the top-of-file comment. Falls back to cache only
+    // when actually offline, so the install-time precache still means something.
+    event.respondWith((async () => {
+      try {
+        const res = await fetch(req);
+        if (res && res.ok) {
+          const cache = await caches.open(CACHE_VERSION);
+          cache.put(req, res.clone());
+        }
+        return res;
+      } catch (e) {
+        const cached = await caches.match(req);
+        return cached || Response.error();
+      }
+    })());
+    return;
+  }
 
   if (!isStaticData) {
     // Stale-while-revalidate for the app shell -- see the big comment up top.

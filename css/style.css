@@ -140,6 +140,7 @@ header.topbar {
   height: 2.4rem;
   width: auto;
   flex-shrink: 0;
+  cursor: pointer;
   /* Same grounding depth the text title used to have, now as a drop-shadow
      under the transparent-background icon instead of a text-shadow. */
   filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4));

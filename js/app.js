@@ -2588,6 +2588,12 @@ function initUI() {
     openInfoModal("Your Bible Study App", `<p>${escapeHtml(titleSubBtn.textContent)}</p>`);
   });
 
+  // Native title="" tooltips never fire on touch devices, so the icon needs
+  // its own tap handler into the same info popup used by the subtitle above.
+  document.getElementById("titleIconBtn").addEventListener("click", () => {
+    openInfoModal("Your Bible Study App", `<p>${escapeHtml(titleSubBtn.textContent)}</p>`);
+  });
+
   document.getElementById("settingsBtn").addEventListener("click", () => {
     refreshErrorLogText();
     openScreen(document.getElementById("settingsModal"));

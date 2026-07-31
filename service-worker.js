@@ -31,7 +31,7 @@
 //    cached forever once fetched, the original cache-first behavior: re-validating
 //    unchanging multi-megabyte text on every load would burn mobile data for no
 //    benefit, working directly against the app's own "Wi-Fi only" setting.
-const CACHE_VERSION = "bible-study-01733f4cdd53";
+const CACHE_VERSION = "bible-study-8abca11dd9a7";
 const CORE_ASSETS = [
   "./",
   "./index.html",

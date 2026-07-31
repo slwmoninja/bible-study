@@ -2580,12 +2580,19 @@ function initUI() {
   document.getElementById("coolIconBtn").addEventListener("click", () => {
     showTodaysArtifact();
   });
-  // The subtitle truncates with an ellipsis on narrow screens (see .title-sub in
-  // css/style.css) -- tapping it shows the full text in the reusable info popup,
+  // Tapping the title shows a feature summary in the reusable info popup,
   // dismissible via its own close button like every other info modal.
   const titleSubBtn = document.getElementById("titleSubBtn");
   titleSubBtn.addEventListener("click", () => {
-    openInfoModal("Your Bible Study App", `<p>${escapeHtml(titleSubBtn.textContent)}</p>`);
+    openInfoModal("Your Bible Study App", `<ul>
+      <li>Hebrew/Greek interlinear word study with lexicon definitions</li>
+      <li>Multiple Bible versions, verse by verse</li>
+      <li>Maps of the Biblical world</li>
+      <li>Biblical archaeology discoveries</li>
+      <li>Devotional reading plans</li>
+      <li>Private journal and note templates</li>
+      <li>Full-text search and copy to clipboard</li>
+    </ul>`);
   });
 
   document.getElementById("settingsBtn").addEventListener("click", () => {

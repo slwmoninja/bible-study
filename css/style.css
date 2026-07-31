@@ -94,22 +94,22 @@ header.topbar {
 .topbar-install-btn {
   font-family: inherit;
   flex-shrink: 0;
-  border: 1px solid var(--gold-bright);
+  border: 1px solid var(--icon-border);
   border-radius: 20px;
   padding: 0.3rem 0.7rem;
   font-size: 0.75rem;
   font-weight: bold;
-  color: var(--maroon-dark);
-  background: var(--gold);
+  color: var(--icon-ink);
+  background: var(--icon-fill);
   cursor: pointer;
   white-space: nowrap;
 }
-.topbar-install-btn:hover { background: var(--gold-bright); }
+.topbar-install-btn:hover { background: var(--icon-border); }
 .topbar-install-btn:active { transform: translateY(1px); }
 .topbar-install-btn.installed {
   background: rgba(0,0,0,0.08);
   color: var(--ink-soft);
-  border: 1px solid rgba(201,161,59,0.45);
+  border: 1px solid rgba(169,205,234,0.6);
   font-weight: normal;
   opacity: 0.85;
   cursor: default;
@@ -123,13 +123,13 @@ header.topbar {
   font-size: 0.95rem;
   padding: 0.4rem 0.6rem;
   border-radius: 4px;
-  border: 1px solid var(--gold);
+  border: 1px solid var(--icon-border);
 }
 .search-popup-row button {
   font-family: inherit;
-  border: 1px solid var(--gold-bright);
-  background: var(--gold);
-  color: var(--maroon-dark);
+  border: 1px solid var(--icon-border);
+  background: var(--icon-fill);
+  color: var(--icon-ink);
   font-weight: bold;
   border-radius: 4px;
   padding: 0.4rem 0.8rem;
@@ -649,16 +649,16 @@ button.book-art {
 .artifact-verses { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .artifact-verse-link {
   font-family: inherit;
-  border: 1px solid var(--gold-bright);
-  background: var(--gold);
-  color: var(--maroon-dark);
+  border: 1px solid var(--icon-border);
+  background: var(--icon-fill);
+  color: var(--icon-ink);
   font-weight: bold;
   border-radius: 4px;
   padding: 0.3rem 0.6rem;
   cursor: pointer;
   font-size: 0.85rem;
 }
-.artifact-verse-link:hover { background: var(--gold-bright); }
+.artifact-verse-link:hover { background: var(--icon-border); }
 
 .artifact-nav {
   display: flex;
@@ -669,9 +669,9 @@ button.book-art {
 }
 .artifact-nav-btn {
   font-family: inherit;
-  border: 1px solid var(--gold-bright);
-  background: var(--gold);
-  color: var(--maroon-dark);
+  border: 1px solid var(--icon-border);
+  background: var(--icon-fill);
+  color: var(--icon-ink);
   font-weight: bold;
   border-radius: 50%;
   width: 2rem;
@@ -680,7 +680,7 @@ button.book-art {
   cursor: pointer;
   font-size: 1.1rem;
 }
-.artifact-nav-btn:hover { background: var(--gold-bright); }
+.artifact-nav-btn:hover { background: var(--icon-border); }
 .artifact-nav-count { font-size: 0.8rem; color: var(--ink-soft); min-width: 3.5rem; text-align: center; }
 
 .artifact-icon {
@@ -817,16 +817,16 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
 .note-actions { display: flex; gap: 0.4rem; margin-top: 0.4rem; }
 .note-actions button, .note-new button {
   font-family: inherit;
-  border: 1px solid var(--gold);
-  background: var(--gold);
-  color: var(--maroon-dark);
+  border: 1px solid var(--icon-border);
+  background: var(--icon-fill);
+  color: var(--icon-ink);
   font-weight: bold;
   border-radius: 3px;
   padding: 0.3rem 0.6rem;
   cursor: pointer;
   font-size: 0.85rem;
 }
-.note-actions button:hover, .note-new button:hover { background: var(--gold-bright); }
+.note-actions button:hover, .note-new button:hover { background: var(--icon-border); }
 .no-notes { font-style: italic; color: var(--ink-soft); }
 .note-new { border-top: 2px dashed var(--border-ornate); padding-top: 0.8rem; }
 
@@ -834,7 +834,8 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
 .notes-panel-heading h3 { margin: 0; }
 
 /* Shared "destructive action" button style -- clear-all/delete-all controls,
-   distinct from the normal gold action buttons so they read as more final. */
+   deliberately left off the normal blue action-button palette (kept maroon)
+   so the color itself still reads as more final/cautionary. */
 .danger-btn {
   font-family: inherit;
   border: 1px solid var(--maroon);
@@ -881,15 +882,15 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
 }
 .journal-filters button {
   font-family: inherit;
-  border: 1px solid var(--gold);
-  background: none;
-  color: var(--maroon);
+  border: 1px solid var(--icon-border);
+  background: var(--icon-fill);
+  color: var(--icon-ink);
   border-radius: 3px;
   padding: 0.3rem 0.6rem;
   cursor: pointer;
   font-size: 0.8rem;
 }
-.journal-filters button:hover { background: var(--highlight); }
+.journal-filters button:hover { background: var(--icon-border); }
 /* Higher specificity than ".journal-filters button" above, so "Delete all"
    keeps the shared .danger-btn look instead of the neutral filter-button one. */
 .journal-filters .danger-btn { border-color: var(--maroon); color: var(--maroon); }
@@ -1000,29 +1001,29 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
 }
 #downloadAllBtn {
   font-family: inherit;
-  border: 1px solid var(--gold);
-  background: var(--gold);
-  color: var(--maroon-dark);
+  border: 1px solid var(--icon-border);
+  background: var(--icon-fill);
+  color: var(--icon-ink);
   font-weight: bold;
   border-radius: 4px;
   padding: 0.5rem 0.9rem;
   cursor: pointer;
 }
-#downloadAllBtn:hover { background: var(--gold-bright); }
+#downloadAllBtn:hover { background: var(--icon-border); }
 #downloadAllBtn:disabled { opacity: 0.6; cursor: wait; }
 #downloadProgress:empty { display: none; }
 
 #copyToClipboardBtn {
   font-family: inherit;
-  border: 1px solid var(--gold);
-  background: var(--gold);
-  color: var(--maroon-dark);
+  border: 1px solid var(--icon-border);
+  background: var(--icon-fill);
+  color: var(--icon-ink);
   font-weight: bold;
   border-radius: 4px;
   padding: 0.5rem 0.9rem;
   cursor: pointer;
 }
-#copyToClipboardBtn:hover { background: var(--gold-bright); }
+#copyToClipboardBtn:hover { background: var(--icon-border); }
 #copyToClipboardBtn:disabled { opacity: 0.6; cursor: wait; }
 .copy-range-row select { font-family: inherit; }
 
@@ -1032,24 +1033,27 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
 
 #backupNowBtn, #restoreBackupBtn {
   font-family: inherit;
-  border: 1px solid var(--gold);
-  background: var(--gold);
-  color: var(--maroon-dark);
+  border: 1px solid var(--icon-border);
+  background: var(--icon-fill);
+  color: var(--icon-ink);
   font-weight: bold;
   border-radius: 4px;
   padding: 0.5rem 0.9rem;
   cursor: pointer;
 }
-#backupNowBtn:hover, #restoreBackupBtn:hover { background: var(--gold-bright); }
+#backupNowBtn:hover, #restoreBackupBtn:hover { background: var(--icon-border); }
 
-/* Re-Install / Uninstall action sheet buttons -- full-width, stacked. */
+/* Re-Install / Uninstall action sheet buttons -- full-width, stacked. Uninstall
+   keeps its maroon danger-variant coloring -- destructive/irreversible-leaning
+   actions deliberately stay off the neutral blue palette so the color itself
+   still signals caution. */
 .install-action-btn {
   display: block;
   width: 100%;
   font-family: inherit;
-  border: 1px solid var(--gold);
-  background: var(--gold);
-  color: var(--maroon-dark);
+  border: 1px solid var(--icon-border);
+  background: var(--icon-fill);
+  color: var(--icon-ink);
   font-weight: bold;
   border-radius: 4px;
   padding: 0.6rem 0.9rem;
@@ -1057,7 +1061,7 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
   font-size: 0.95rem;
   margin-bottom: 0.4rem;
 }
-.install-action-btn:hover { background: var(--gold-bright); }
+.install-action-btn:hover { background: var(--icon-border); }
 .install-action-btn.danger-variant { background: none; border-color: var(--maroon); color: var(--maroon); }
 .install-action-btn.danger-variant:hover { background: var(--maroon); color: var(--parchment); }
 

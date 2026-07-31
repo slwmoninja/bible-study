@@ -2053,9 +2053,40 @@ function isUserTyping() {
 // the server" instead of only catching drift that happens later.
 const DEPLOYED_TAG_KEY = "bibleAppDeployedTag";
 let deployedVersionTag = (function () { try { return localStorage.getItem(DEPLOYED_TAG_KEY); } catch (e) { return null; } })();
+// The index.html etag check below only catches changes to index.html's own
+// bytes -- a CSS/JS-only edit (like a color palette tweak that never touches
+// index.html) can leave CACHE_VERSION bumped in service-worker.js while the
+// etag here stays identical, so it would go undetected forever without this.
+// Browsers only check a registered service worker's script for byte changes
+// on their own schedule (up to ~24h between checks), which is what actually
+// caused a real device to keep showing a stale CSS palette after a deploy
+// even after the user manually cleared their browser cache -- clearing cache
+// doesn't force an early check either. reg.update() forces that check right
+// now instead of waiting on it. Once a genuinely new worker activates (it
+// calls skipWaiting()/clients.claim() itself -- see service-worker.js),
+// 'controllerchange' fires below and that's what actually triggers the
+// reload -- not the update() call itself, which only starts the check.
+let swReloadPending = false;
+let swReloadTriggered = false;
+function reloadForNewServiceWorker() {
+  if (swReloadTriggered) return; // controllerchange can fire more than once per page life
+  if (isUserTyping()) { swReloadPending = true; return; } // retried from checkForUpdate's next call
+  swReloadTriggered = true;
+  location.reload();
+}
+if (navigator.serviceWorker) {
+  navigator.serviceWorker.addEventListener("controllerchange", reloadForNewServiceWorker);
+}
 // Returns a status string so callers wanting feedback (pull-to-refresh) can
 // react -- the interval/visibilitychange callers below just ignore it.
 async function checkForUpdate() {
+  if (swReloadPending && !isUserTyping()) { reloadForNewServiceWorker(); return "reloading"; }
+  if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) reg.update().catch(() => {});
+    } catch (e) {}
+  }
   try {
     const res = await fetch(location.pathname + "?_=" + Date.now(), { cache: "no-store", method: "HEAD" });
     const tag = res.headers.get("etag") || res.headers.get("last-modified");

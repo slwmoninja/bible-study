@@ -1792,7 +1792,7 @@ async function warmOfflineBibleIfNeeded() {
 // ---------- Error log ----------
 
 function refreshErrorLogText() {
-  document.getElementById("errorLogText").value = ErrorLog.formatForCopy();
+  document.getElementById("errorLogText").value = ErrorLog.load().length ? ErrorLog.formatForCopy() : "";
 }
 
 function initErrorLogControls() {

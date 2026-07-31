@@ -2210,34 +2210,67 @@ const UNINSTALL_STEPS_HTML = `
     <li>Confirm when prompted.</li>
   </ol>
   <p class="settings-note" style="margin-top:0.6rem;">To erase your notes, journal, and settings on this device instead of just removing the icon, use "Erase all data" in Settings &gt; Data.</p>`;
+// Shared by the Install pill's tap and the proactive install-prompt modal's
+// "Install" button below -- one native-vs-manual branch, not two.
+async function triggerInstall() {
+  if (deferredInstallPrompt) {
+    const promptEvent = deferredInstallPrompt;
+    deferredInstallPrompt = null; // one-shot -- the browser invalidates it after a single use either way
+    promptEvent.prompt();
+    const choice = await promptEvent.userChoice;
+    if (choice.outcome === "accepted") {
+      state.settings.installPromptAccepted = true;
+      saveSettings();
+      showToast("Installed — look for it on your Home Screen.", "good");
+    }
+    renderInstallUI();
+  } else {
+    // No captured browser-native prompt -- either this browser doesn't support
+    // triggering install from a page at all (iOS Safari, plain Firefox), or
+    // Chrome/Edge just hasn't fired beforeinstallprompt yet. The manual path
+    // always works; there's no signal a page can detect for "the user actually
+    // finished the manual steps", so this can't flip to Installed on its own --
+    // only relaunching from the real Home Screen icon can do that.
+    openInfoModal("Install on Home Screen", INSTALL_STEPS_HTML);
+  }
+}
 function wireInstallBtn(id) {
   const btn = document.getElementById(id);
   if (!btn) return;
 
-  btn.addEventListener("click", async () => {
+  btn.addEventListener("click", () => {
     if (isInstalled()) { openInfoModal("Uninstall", UNINSTALL_STEPS_HTML); return; }
-    if (deferredInstallPrompt) {
-      const promptEvent = deferredInstallPrompt;
-      deferredInstallPrompt = null; // one-shot -- the browser invalidates it after a single use either way
-      promptEvent.prompt();
-      const choice = await promptEvent.userChoice;
-      if (choice.outcome === "accepted") {
-        state.settings.installPromptAccepted = true;
-        saveSettings();
-        showToast("Installed — look for it on your Home Screen.", "good");
-      }
-      renderInstallUI();
-    } else {
-      // No captured browser-native prompt -- either this browser doesn't support
-      // triggering install from a page at all (iOS Safari, plain Firefox), or
-      // Chrome/Edge just hasn't fired beforeinstallprompt yet. The manual path
-      // always works; there's no signal a page can detect for "the user actually
-      // finished the manual steps", so this can't flip to Installed on its own --
-      // only relaunching from the real Home Screen icon can do that.
-      openInfoModal("Install on Home Screen", INSTALL_STEPS_HTML);
-    }
+    triggerInstall();
   });
 }
+// Proactive "Install Your Bible Study App?" prompt, shown once (ever, per
+// device) on a fresh open when not already installed -- asked, not assumed:
+// declining just closes it and points at Settings' Install pill for later,
+// and the asked-flag is set either way so this never nags on a later visit.
+// A short delay lets beforeinstallprompt (which can arrive a moment after
+// load) have a chance to populate deferredInstallPrompt first, so "Install"
+// here has the same shot at the fast native one-tap path as the pill does.
+const INSTALL_PROMPT_ASKED_KEY = "bibleAppInstallPromptAsked";
+function maybeShowInstallPrompt() {
+  if (isInstalled()) return;
+  try { if (localStorage.getItem(INSTALL_PROMPT_ASKED_KEY)) return; } catch (e) {}
+  setTimeout(() => {
+    if (isInstalled()) return; // could have installed (or been asked elsewhere) during the delay
+    try { localStorage.setItem(INSTALL_PROMPT_ASKED_KEY, "1"); } catch (e) {}
+    openInfoModal("Install Your Bible Study App?", `
+      <p style="margin-top:0;">Installing adds it to your Home Screen and gives it the strongest protection against your browser silently clearing its data.</p>
+      <button id="install-prompt-yes" style="display:block;width:100%;font-family:inherit;border:1px solid var(--icon-border);background:var(--icon-fill);color:var(--icon-ink);font-weight:bold;border-radius:4px;padding:0.6rem 0.9rem;cursor:pointer;font-size:0.95rem;margin-bottom:0.5rem;">Install</button>
+      <button id="install-prompt-no" style="display:block;width:100%;font-family:inherit;border:1px solid var(--border-ornate);background:none;color:var(--ink-soft);border-radius:4px;padding:0.6rem 0.9rem;cursor:pointer;font-size:0.95rem;">Not now</button>
+    `);
+    const dialog = document.getElementById("infoModal");
+    document.getElementById("install-prompt-yes").addEventListener("click", () => { closeScreen(dialog); triggerInstall(); });
+    document.getElementById("install-prompt-no").addEventListener("click", () => {
+      closeScreen(dialog);
+      showToast("No problem — look for the Install button in Settings whenever you're ready.", "good");
+    });
+  }, 1500);
+}
+maybeShowInstallPrompt();
 // Chrome/Edge/Android fire this instead of installing immediately, handing over
 // an event whose .prompt() shows the native install UI on demand -- captured up
 // front and held until the Install pill is actually tapped. preventDefault()

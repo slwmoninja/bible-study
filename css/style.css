@@ -1043,28 +1043,6 @@ dialog::backdrop { background: rgba(20,10,5,0.6); }
 }
 #backupNowBtn:hover, #restoreBackupBtn:hover { background: var(--icon-border); }
 
-/* Re-Install / Uninstall action sheet buttons -- full-width, stacked. Uninstall
-   keeps its maroon danger-variant coloring -- destructive/irreversible-leaning
-   actions deliberately stay off the neutral blue palette so the color itself
-   still signals caution. */
-.install-action-btn {
-  display: block;
-  width: 100%;
-  font-family: inherit;
-  border: 1px solid var(--icon-border);
-  background: var(--icon-fill);
-  color: var(--icon-ink);
-  font-weight: bold;
-  border-radius: 4px;
-  padding: 0.6rem 0.9rem;
-  cursor: pointer;
-  font-size: 0.95rem;
-  margin-bottom: 0.4rem;
-}
-.install-action-btn:hover { background: var(--icon-border); }
-.install-action-btn.danger-variant { background: none; border-color: var(--maroon); color: var(--maroon); }
-.install-action-btn.danger-variant:hover { background: var(--maroon); color: var(--parchment); }
-
 /* ---------- Pull-to-refresh (forces an update check on demand -- see the
    pull-to-refresh IIFE in js/app.js) ---------- */
 

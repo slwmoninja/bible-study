@@ -222,21 +222,6 @@
   <div class="modal-body" id="infoModalBody"></div>
 </dialog>
 
-<!-- Action sheet opened by holding the "Installed" pill -- see the long-press
-     wiring in wireInstallBtn() in js/app.js. -->
-<dialog id="installActionsModal">
-  <div class="modal-header">
-    <h2>Installed</h2>
-    <button class="close-btn" aria-label="Close">&times;</button>
-  </div>
-  <div class="modal-body">
-    <button id="reinstallBtn" class="install-action-btn">Re-Install</button>
-    <p class="settings-note">Keeps your notes, journal, and settings &mdash; refreshes the app's code immediately, no confirmation needed. (This can't make your phone re-fetch the Home Screen icon image itself &mdash; that's only ever captured once, when you first add the shortcut.)</p>
-    <button id="uninstallBtn" class="install-action-btn danger-variant">Uninstall</button>
-    <p class="settings-note">Keeps your data too, by default &mdash; you'll be asked separately if you also want it deleted.</p>
-  </div>
-</dialog>
-
 <dialog id="settingsModal">
   <div class="modal-header">
     <h2>Settings</h2>
@@ -307,6 +292,9 @@
     </div>
     <input type="file" id="restoreBackupInput" accept="application/json,.json" multiple class="hidden">
     <p id="restoreStatus" class="settings-note"></p>
+    <div class="settings-row">
+      <button id="eraseAllDataBtn" class="danger-btn">Erase all data</button>
+    </div>
 
     <hr class="settings-divider">
 

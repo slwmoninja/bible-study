@@ -2151,9 +2151,8 @@ function isInstalled() {
 // Shown only inside Settings' modal-header (same row as the "Settings"
 // heading) -- that's the one place people go to confirm install state, so it
 // stays visible even once installed, switching to an inert "Installed" status
-// line instead of disappearing. Not a real <button disabled> once installed --
-// it stays enabled (a plain tap just no-ops, see wireInstallBtn) so it can
-// still receive the long-press that opens Re-Install/Uninstall.
+// line instead of disappearing. Label always mirrors isInstalled() directly --
+// see wireInstallBtn for what a tap in each state actually does.
 function installPillHtml(id) {
   const installed = isInstalled();
   return `<button class="topbar-install-btn${installed ? " installed" : ""}" id="${id}">${installed ? "Installed" : "Install"}</button>`;
@@ -2169,12 +2168,54 @@ function renderInstallUI() {
     wireInstallBtn("settingsInstallBtn");
   }
 }
+// Platform-agnostic (a page can't reliably detect device type) instructions --
+// the real install/uninstall action always happens at the OS level, so these
+// just point at it rather than pretending the pill can do it. Shown via
+// openInfoModal (centered popup), same pattern as HealthScore's install pill.
+const INSTALL_STEPS_HTML = `
+  <strong>iPhone/iPad (Safari):</strong>
+  <ol style="margin:4px 0 0;padding-left:18px;">
+    <li>Tap the Share icon (square with an arrow) in the toolbar.</li>
+    <li>Scroll down and tap "Add to Home Screen".</li>
+    <li>Tap "Add" in the top right.</li>
+  </ol><br>
+  <strong>Android (Chrome):</strong>
+  <ol style="margin:4px 0 0;padding-left:18px;">
+    <li>Tap the &#8942; menu in the top right.</li>
+    <li>Tap "Add to Home screen" or "Install app".</li>
+    <li>Tap "Install" (or "Add") to confirm.</li>
+  </ol><br>
+  <strong>Desktop Chrome/Edge:</strong>
+  <ol style="margin:4px 0 0;padding-left:18px;">
+    <li>Click the install icon at the right edge of the address bar (or the &#8942; menu).</li>
+    <li>Click "Install" to confirm.</li>
+  </ol>`;
+const UNINSTALL_STEPS_HTML = `
+  <strong>iPhone/iPad:</strong>
+  <ol style="margin:4px 0 0;padding-left:18px;">
+    <li>Touch and hold the app icon on the Home Screen.</li>
+    <li>Tap "Remove App".</li>
+    <li>Tap "Delete App" to confirm.</li>
+  </ol><br>
+  <strong>Android:</strong>
+  <ol style="margin:4px 0 0;padding-left:18px;">
+    <li>Touch and hold the app icon on the Home screen.</li>
+    <li>Tap "Uninstall" (or drag it to "Uninstall" at the top of the screen).</li>
+    <li>Confirm when prompted.</li>
+  </ol><br>
+  <strong>Desktop Chrome/Edge:</strong>
+  <ol style="margin:4px 0 0;padding-left:18px;">
+    <li>Right-click the app icon (Start Menu/Taskbar/Dock).</li>
+    <li>Click "Uninstall".</li>
+    <li>Confirm when prompted.</li>
+  </ol>
+  <p class="settings-note" style="margin-top:0.6rem;">To erase your notes, journal, and settings on this device instead of just removing the icon, use "Erase all data" in Settings &gt; Data.</p>`;
 function wireInstallBtn(id) {
   const btn = document.getElementById(id);
   if (!btn) return;
 
   btn.addEventListener("click", async () => {
-    if (isInstalled()) return; // no-op tap once installed -- long-press is the only action left, see below
+    if (isInstalled()) { openInfoModal("Uninstall", UNINSTALL_STEPS_HTML); return; }
     if (deferredInstallPrompt) {
       const promptEvent = deferredInstallPrompt;
       deferredInstallPrompt = null; // one-shot -- the browser invalidates it after a single use either way
@@ -2193,32 +2234,9 @@ function wireInstallBtn(id) {
       // always works; there's no signal a page can detect for "the user actually
       // finished the manual steps", so this can't flip to Installed on its own --
       // only relaunching from the real Home Screen icon can do that.
-      openInfoModal("Install on Home Screen", `
-        <strong>iPhone/iPad (Safari):</strong> tap the Share icon (square with an arrow), then "Add to Home Screen".<br><br>
-        <strong>Android (Chrome), if this button didn't just install it directly:</strong> tap the &#8942; menu in the top right, then "Add to Home Screen" or "Install app".<br><br>
-        <strong>Desktop Chrome/Edge:</strong> look for an install icon at the right edge of the address bar, or use the &#8942; menu.
-      `);
+      openInfoModal("Install on Home Screen", INSTALL_STEPS_HTML);
     }
   });
-
-  // Holding the "Installed" pill opens Re-Install/Uninstall -- pointerdown/up
-  // timing (not the "contextmenu" event) so it behaves the same on a mouse and
-  // on touch, and so a normal tap that starts turning into a scroll
-  // (pointermove past MOVE_TOLERANCE) cancels cleanly instead of firing.
-  let holdTimer = null, holdStart = null;
-  const HOLD_MS = 550, MOVE_TOLERANCE = 10;
-  const cancelHold = () => { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } holdStart = null; };
-  btn.addEventListener("pointerdown", (e) => {
-    if (!isInstalled()) return;
-    holdStart = [e.clientX, e.clientY];
-    holdTimer = setTimeout(() => { holdTimer = null; openScreen(document.getElementById("installActionsModal")); }, HOLD_MS);
-  });
-  btn.addEventListener("pointermove", (e) => {
-    if (!holdTimer || !holdStart) return;
-    if (Math.hypot(e.clientX - holdStart[0], e.clientY - holdStart[1]) > MOVE_TOLERANCE) cancelHold();
-  });
-  ["pointerup", "pointercancel", "pointerleave"].forEach((evt) => btn.addEventListener(evt, cancelHold));
-  btn.addEventListener("contextmenu", (e) => { if (isInstalled()) e.preventDefault(); }); // swallow the native long-press menu
 }
 // Chrome/Edge/Android fire this instead of installing immediately, handing over
 // an event whose .prompt() shows the native install UI on demand -- captured up
@@ -2237,65 +2255,26 @@ window.addEventListener("appinstalled", () => {
   saveSettings();
   renderInstallUI();
 });
-// Fires immediately, no confirmation -- clears every cache layer this page can
-// reach (the service worker's own registration plus the Cache Storage entries
-// it's allowed to make, see service-worker.js) then forces a cache-busted
-// reload right now, same intent as checkForUpdate()'s no-store check just
-// forced instead of waiting for the next visibilitychange. Never touches
-// localStorage (notes/journal/settings are untouched). This can't make the OS
-// re-fetch the *icon* for an already-placed Home Screen/taskbar shortcut --
-// that image is only ever captured once, at install time -- but the code it
-// launches next time is guaranteed fresh either way (see the toast this shows
-// after the reload completes, via the pendingReinstallToast flag below).
-function reinstallApp() {
-  if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
-    navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister()));
-  }
-  if (window.caches && caches.keys) {
-    caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
-  }
-  // Wipes every cached byte above, including whatever Add On Features were
-  // installed -- clear their checkboxes' backing flags too so Settings doesn't
-  // keep claiming data is present that a fresh load will no longer find cached.
-  for (const addon of ADDONS) {
-    addon.setOn(false);
-    state.settings.addonConfirmed[addon.id] = false;
-  }
-  saveSettings();
-  try { localStorage.setItem("bibleAppPendingReinstallToast", "1"); } catch (e) {}
-  location.href = location.pathname + "?_reinstall=" + Date.now();
-}
-// No web API lets a page force-remove its own Home Screen/taskbar shortcut --
-// that's an OS-level action only the user can take (steps shown below) -- so
-// this only clears this app's own belief that it's installed here, which flips
-// the Install pill back to "Install". If this is running *as* the installed
-// app right now, isInstalled() still reports true afterward (isStandaloneApp()
-// alone already covers that) until the shortcut is actually removed and the
-// site reopened in a normal tab -- which is correct, not a bug.
-function uninstallApp() {
-  if (!confirm("Uninstall on this device? The Home Screen/taskbar icon itself has to be removed separately (steps follow) — this just clears the \"Installed\" status here. Continue?")) return;
-  state.settings.installPromptAccepted = false;
-  saveSettings();
-  let dataDeleted = false;
-  if (confirm("Also delete all notes, journal entries, and settings on this device? This cannot be undone.")) {
-    BACKUP_KEYS.forEach((k) => localStorage.removeItem(k));
-    dataDeleted = true;
-  }
-  openInfoModal("Remove the Home Screen Icon", `
-    <strong>iPhone/iPad:</strong> touch and hold the app icon, then tap "Remove App".<br><br>
-    <strong>Android:</strong> touch and hold the app icon, then tap "Uninstall".<br><br>
-    <strong>Desktop Chrome/Edge:</strong> right-click the app icon (Start Menu/Dock/taskbar), then choose "Uninstall".<br><br>
-    ${dataDeleted ? "Your data on this device has been deleted." : "Your notes, journal, and settings have been kept — reinstalling will pick up right where you left off."}
-  `);
-  showToast(dataDeleted ? "Uninstalled and data deleted." : "Uninstalled — data kept.", "good");
-  if (dataDeleted) {
-    // A full reload is simplest/safest here -- Notes/Journal read straight from
-    // localStorage on every call rather than being cached in `state`, but the
-    // chapter already on screen has note icons baked into its last render.
-    setTimeout(() => location.reload(), 1200);
-  } else {
-    renderInstallUI();
-  }
+// No web API lets a page force-remove its own Home Screen/taskbar shortcut or
+// force-refresh its own cache from the OS's perspective -- both are strictly
+// user-driven OS actions (see UNINSTALL_STEPS_HTML/INSTALL_STEPS_HTML above).
+// checkForUpdate()'s forced service-worker update check already keeps the
+// app's code current on its own (see js/app.js's controllerchange listener),
+// so there's no separate manual "re-fetch everything" control here anymore.
+//
+// Erasing local data, however, has no OS-level equivalent and no other
+// control in this app reaches it (Notes/Journal's own "delete all" buttons
+// are scoped to one verse/entry, not everything) -- so it stays as an
+// explicit, standalone Settings action, decoupled from the Install pill
+// (which is now purely informational, see wireInstallBtn).
+function eraseAllData() {
+  if (!confirm("Erase all notes, journal entries, and settings on this device? This cannot be undone.")) return;
+  BACKUP_KEYS.forEach((k) => localStorage.removeItem(k));
+  showToast("All data erased.", "good");
+  // A full reload is simplest/safest here -- Notes/Journal read straight from
+  // localStorage on every call rather than being cached in `state`, but the
+  // chapter already on screen has note icons baked into its last render.
+  setTimeout(() => location.reload(), 1200);
 }
 
 // ---------- Backup / Restore ----------
@@ -2497,21 +2476,7 @@ function initInstallAndBackupControls() {
     restoreInput.value = ""; // lets picking the exact same file again re-fire "change"
   });
 
-  document.getElementById("reinstallBtn").addEventListener("click", () => {
-    reinstallApp(); // navigates away immediately -- no need to fuss with closing the dialog/history first
-  });
-  document.getElementById("uninstallBtn").addEventListener("click", () => {
-    closeScreen(document.getElementById("installActionsModal"));
-    uninstallApp();
-  });
-
-  // Shown once, right after a Re-Install-triggered reload -- see reinstallApp().
-  try {
-    if (localStorage.getItem("bibleAppPendingReinstallToast")) {
-      localStorage.removeItem("bibleAppPendingReinstallToast");
-      showToast("Reinstalled — running the latest code. (The Home Screen icon image itself only updates if you remove and re-add the shortcut.)", "good");
-    }
-  } catch (e) {}
+  document.getElementById("eraseAllDataBtn").addEventListener("click", eraseAllData);
 
   renderInstallUI();
 }

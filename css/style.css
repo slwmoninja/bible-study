@@ -26,19 +26,12 @@ html, body {
 /* ---------- Top bar ---------- */
 
 header.topbar {
+  /* The actual photographed paper texture cropped from a fish-free area of
+     icons/title-icon.png's source photo (icons/header-paper.png) -- used as-is,
+     tiled, with no CSS-simulated grain layered on top. */
+  background-image: url("../icons/header-paper.png");
+  background-repeat: repeat;
   background-color: var(--paper);
-  /* Same manuscript-paper technique as main#content below (fiber-grain dots
-     plus faint aging blotches) but on a cooler, whiter base -- the white
-     textured cardstock the fish emblem sits on, reused here instead of the
-     old leather-bound-cover look. */
-  background-image:
-    radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
-    radial-gradient(rgba(0,0,0,0.035) 1px, transparent 1px),
-    radial-gradient(ellipse 60% 45% at 12% 8%, rgba(255,255,255,0.5), transparent 60%),
-    radial-gradient(ellipse 55% 40% at 88% 92%, rgba(0,0,0,0.04), transparent 60%),
-    radial-gradient(ellipse 40% 35% at 70% 20%, rgba(0,0,0,0.025), transparent 65%);
-  background-size: 3px 3px, 7px 7px, auto, auto, auto;
-  background-position: 0 0, 2px 3px, 0 0, 0 0, 0 0;
   color: var(--ink);
   padding: 0.6rem 0.8rem;
   box-shadow: 0 3px 8px rgba(0,0,0,0.2);
@@ -77,6 +70,16 @@ header.topbar {
   align-items: center;
   gap: 0.4rem;
 }
+
+/* Smaller than the other header icon-btns so it no longer overlaps the
+   book/chapter/verse/version dropdowns now that the shrunk fish icon has
+   made the top bar shorter overall. */
+#settingsBtn {
+  width: 1.6rem;
+  height: 1.6rem;
+  font-size: 0.9rem;
+}
+#settingsBtn svg { width: 15px; height: 15px; }
 
 /* "Install"/"Installed" pill -- shown only inside Settings' modal-header (same
    row as the "Settings" heading), kept visible as an inert status line even
@@ -133,8 +136,8 @@ header.topbar {
 .topbar-title {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
+  justify-content: flex-start;
+  gap: 0.5rem;
   padding-right: 2.5rem; /* keep clear of the settings gear in the top-right */
   margin: 0 0 0.5rem 0;
 }
@@ -151,10 +154,10 @@ header.topbar {
 .title-sub {
   font: inherit;
   font-size: 0.75rem;
-  font-weight: normal;
+  font-weight: bold;
   color: var(--ink-soft);
   opacity: 0.8;
-  text-align: right;
+  text-align: left;
   flex-shrink: 1;
   min-width: 0;
   overflow: hidden;

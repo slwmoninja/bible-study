@@ -183,7 +183,7 @@ header.topbar {
   justify-content: center;
 }
 
-.controls-row select, .controls-row input, .controls-row button {
+.controls-row select, .controls-row input, .controls-row button:not(.icon-btn) {
   font-family: inherit;
   font-size: 0.95rem;
   padding: 0.35rem 0.5rem;
@@ -203,14 +203,14 @@ header.topbar {
   min-width: 100px;
 }
 
-.controls-row button {
+.controls-row button:not(.icon-btn) {
   background: var(--gold);
   color: var(--maroon-dark);
   font-weight: bold;
   cursor: pointer;
   border-color: var(--gold-bright);
 }
-.controls-row button:hover { background: var(--gold-bright); }
+.controls-row button:not(.icon-btn):hover { background: var(--gold-bright); }
 
 /* Search is opened non-modally (dialog.show(), not showModal()) so the reader
    stays visible and interactive behind it -- clicking a result navigates the

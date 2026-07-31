@@ -10,6 +10,10 @@
   --maroon-dark: #4a1119;
   --border-ornate: #8a6a2a;
   --highlight: #fff8e6;
+  --icon-border: #a9cdea;
+  --icon-border-hover: #7fb0dd;
+  --icon-ink: #1a3c6e;
+  --icon-fill: #ffffff;
 }
 
 * { box-sizing: border-box; }
@@ -49,15 +53,15 @@ header.topbar {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--gold-bright);
+  border: 1px solid var(--icon-border);
   border-radius: 50%;
-  background: var(--maroon);
-  color: var(--gold-bright);
+  background: var(--icon-fill);
+  color: var(--icon-ink);
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
 }
-.icon-btn:hover { background: var(--maroon-dark); }
+.icon-btn:hover { background: var(--icon-border); border-color: var(--icon-border-hover); }
 
 /* Top-right corner: just the Settings gear now -- the Install pill lives only
    in Settings' own modal-header (see #settingsInstallSlot below). */
@@ -187,6 +191,11 @@ header.topbar {
   border: 1px solid var(--gold);
   background: var(--highlight);
   color: var(--ink);
+}
+
+.controls-row select {
+  border-color: var(--icon-border);
+  color: var(--icon-ink);
 }
 
 .controls-row input[type="text"] {

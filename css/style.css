@@ -1,4 +1,5 @@
 :root {
+  --paper: #f8f6f1;
   --parchment: #f2e6c9;
   --parchment-dark: #e6d3a3;
   --ink: #3a2a1a;
@@ -25,20 +26,22 @@ html, body {
 /* ---------- Top bar ---------- */
 
 header.topbar {
-  /* Aged-leather look: crosshatched grain, mottled worn patches, and darkened
-     edges over the maroon base -- a leather-bound-cover texture for the toolbar. */
-  background:
-    repeating-linear-gradient(95deg, rgba(0,0,0,0.14) 0px, rgba(0,0,0,0.14) 1px, transparent 1px, transparent 4px),
-    repeating-linear-gradient(5deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 5px),
-    radial-gradient(ellipse 45% 240% at 6% 50%, rgba(0,0,0,0.3), transparent 70%),
-    radial-gradient(ellipse 40% 240% at 94% 50%, rgba(0,0,0,0.3), transparent 70%),
-    radial-gradient(ellipse 25% 180% at 30% 40%, rgba(255,255,255,0.08), transparent 70%),
-    radial-gradient(ellipse 30% 180% at 70% 60%, rgba(0,0,0,0.12), transparent 70%),
-    radial-gradient(ellipse 60% 160% at 50% 20%, rgba(255,255,255,0.06), transparent 70%),
-    linear-gradient(var(--maroon), var(--maroon-dark));
-  color: var(--highlight);
+  background-color: var(--paper);
+  /* Same manuscript-paper technique as main#content below (fiber-grain dots
+     plus faint aging blotches) but on a cooler, whiter base -- the white
+     textured cardstock the fish emblem sits on, reused here instead of the
+     old leather-bound-cover look. */
+  background-image:
+    radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
+    radial-gradient(rgba(0,0,0,0.035) 1px, transparent 1px),
+    radial-gradient(ellipse 60% 45% at 12% 8%, rgba(255,255,255,0.5), transparent 60%),
+    radial-gradient(ellipse 55% 40% at 88% 92%, rgba(0,0,0,0.04), transparent 60%),
+    radial-gradient(ellipse 40% 35% at 70% 20%, rgba(0,0,0,0.025), transparent 65%);
+  background-size: 3px 3px, 7px 7px, auto, auto, auto;
+  background-position: 0 0, 2px 3px, 0 0, 0 0, 0 0;
+  color: var(--ink);
   padding: 0.6rem 0.8rem;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
   position: sticky;
   top: 0;
   z-index: 20;
@@ -55,13 +58,13 @@ header.topbar {
   justify-content: center;
   border: 1px solid var(--gold-bright);
   border-radius: 50%;
-  background: rgba(0,0,0,0.25);
+  background: var(--maroon);
   color: var(--gold-bright);
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
 }
-.icon-btn:hover { background: rgba(0,0,0,0.4); }
+.icon-btn:hover { background: var(--maroon-dark); }
 
 /* Top-right corner: just the Settings gear now -- the Install pill lives only
    in Settings' own modal-header (see #settingsInstallSlot below). */
@@ -97,8 +100,8 @@ header.topbar {
 .topbar-install-btn:hover { background: var(--gold-bright); }
 .topbar-install-btn:active { transform: translateY(1px); }
 .topbar-install-btn.installed {
-  background: rgba(0,0,0,0.22);
-  color: var(--highlight);
+  background: rgba(0,0,0,0.08);
+  color: var(--ink-soft);
   border: 1px solid rgba(201,161,59,0.45);
   font-weight: normal;
   opacity: 0.85;
@@ -137,10 +140,9 @@ header.topbar {
 }
 
 .title-main {
-  height: 2.4rem;
+  height: 1.2rem;
   width: auto;
   flex-shrink: 0;
-  cursor: pointer;
   /* Same grounding depth the text title used to have, now as a drop-shadow
      under the transparent-background icon instead of a text-shadow. */
   filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4));
@@ -150,7 +152,7 @@ header.topbar {
   font: inherit;
   font-size: 0.75rem;
   font-weight: normal;
-  color: var(--highlight);
+  color: var(--ink-soft);
   opacity: 0.8;
   text-align: right;
   flex-shrink: 1;

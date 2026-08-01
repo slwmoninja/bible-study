@@ -566,6 +566,40 @@ window.ARTIFACTS = [
     // a vineyard in the Song of Solomon, and a prophesied fishing spot in Ezekiel.
     verses: [["Jos", 15, 62], ["1Sa", 23, 29], ["1Sa", 24, 1], ["2Ch", 20, 2], ["Sng", 1, 14], ["Ezk", 47, 10]],
   },
+  // The following 4 entries are sourced from images used on Wikipedia's "Temple in
+  // Jerusalem" article (real Wikimedia Commons files, verified license and URL).
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Second_Temple.jpg/330px-Second_Temple.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Second_Temple.jpg",
+    title: "Herod's Temple (Second Temple Model)",
+    description: "A scale model of Herod's Temple, part of the Holyland Model of Jerusalem at the Israel Museum — the vast building complex whose destruction Jesus foretold to his disciples.",
+    wiki: "Second Temple",
+    verses: [["Mrk", 13, 1], ["Mrk", 13, 2], ["Jhn", 2, 20]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Jerusalem_Temple_Warning_Inscription.jpg/330px-Jerusalem_Temple_Warning_Inscription.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Jerusalem_Temple_Warning_Inscription.jpg",
+    title: "Temple Warning Inscription",
+    description: "A Greek inscription from the Second Temple's Court of the Gentiles barrier, warning non-Jews on pain of death not to proceed further — the very restriction Paul was accused of violating.",
+    wiki: "Temple Warning inscription",
+    verses: [["Act", 21, 28], ["Act", 21, 29]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/To_the_trumpeting_place.jpg/330px-To_the_trumpeting_place.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:To_the_trumpeting_place.jpg",
+    title: "Trumpeting Place Inscription",
+    description: "A carved stone reading \"To the Place of Trumpeting,\" found fallen at the southwest corner of the Temple Mount — identified by many scholars with the pinnacle of the temple named in the Gospels.",
+    wiki: "Trumpeting Place inscription",
+    verses: [["Mat", 4, 5], ["Luk", 4, 9]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/The_rock_of_the_Dome_of_the_Rock_Corrected.jpg/330px-The_rock_of_the_Dome_of_the_Rock_Corrected.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:The_rock_of_the_Dome_of_the_Rock_Corrected.jpg",
+    title: "Foundation Stone",
+    description: "The bare bedrock now enshrined beneath the Dome of the Rock, traditionally identified with the threshing floor David bought from Araunah the Jebusite and the site Solomon chose to build the Temple.",
+    wiki: "Foundation Stone",
+    verses: [["2Sa", 24, 18], ["2Sa", 24, 25], ["2Ch", 3, 1]],
+  },
 ];
 
 // Index of the first artifact whose verse list includes this exact book/chapter/verse,

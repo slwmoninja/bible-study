@@ -724,12 +724,12 @@ function showArtifactAt(index) {
        </a>`
     : "";
 
-  const secondaryLinkHtml = a.sourceUrl && wikiUrl
-    ? `<p class="settings-note"><a href="${wikiUrl}" target="_blank" rel="noopener">More on Wikipedia</a></p>`
-    : "";
-
-  const holyLandPhotosHtml = a.holyLandPhotos
-    ? `<p class="settings-note"><a href="${a.holyLandPhotos}" target="_blank" rel="noopener">More photos courtesy HolyLandPhotos.org</a></p>`
+  const seeMoreLinks = [
+    a.holyLandPhotos ? `<a href="${a.holyLandPhotos}" target="_blank" rel="noopener">HolyLandPhotos.org</a>` : "",
+    wikiUrl ? `<a href="${wikiUrl}" target="_blank" rel="noopener">Wikipedia</a>` : "",
+  ].filter(Boolean);
+  const seeMoreHtml = seeMoreLinks.length
+    ? `<p class="settings-note">See more: ${seeMoreLinks.join(", ")}</p>`
     : "";
 
   const body = document.getElementById("artifactModalBody");
@@ -741,9 +741,8 @@ function showArtifactAt(index) {
     </div>
     ${photoHtml}
     <h3>${escapeHtml(a.title)}</h3>
+    ${seeMoreHtml}
     <p>${escapeHtml(a.description)}</p>
-    ${secondaryLinkHtml}
-    ${holyLandPhotosHtml}
     <p class="settings-note">Related passages:</p>
     <div class="artifact-verses">${verseLinks}</div>`;
 

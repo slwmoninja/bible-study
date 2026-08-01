@@ -635,6 +635,66 @@ window.ARTIFACTS = [
     wiki: "Gihon Spring",
     verses: [["1Ki", 1, 33], ["1Ki", 1, 38], ["1Ki", 1, 39]],
   },
+  // The following 7 entries are sourced from images used on Wikipedia's "List of
+  // inscriptions in biblical archaeology" article (real Wikimedia Commons files,
+  // verified license and URL), each naming or depicting a figure/event the Bible
+  // also names -- selected for a specific, direct textual tie, not a generic era match.
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Bubastis_portal_at_Karnak.jpg/330px-Bubastis_portal_at_Karnak.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Bubastis_portal_at_Karnak.jpg",
+    title: "Bubastite Portal (Shishak Relief)",
+    description: "A triumphal relief at Karnak listing the cities Pharaoh Shishak (Sheshonq I) claimed to have conquered on his campaign into Canaan — the same king who plundered the treasures of Solomon's Temple in the reign of Rehoboam.",
+    wiki: "Bubastite Portal",
+    verses: [["1Ki", 14, 25], ["1Ki", 14, 26], ["2Ch", 12, 9]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Karkar.jpg/330px-Karkar.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Karkar.jpg",
+    title: "Kurkh Monolith",
+    description: "An Assyrian stele of Shalmaneser III listing the kings who opposed him at the Battle of Qarqar, including \"Ahab the Israelite\" — the earliest extra-biblical mention of an Israelite king by name.",
+    wiki: "Kurkh Monoliths",
+    verses: [["1Ki", 16, 29]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Black-obelisk.jpg/330px-Black-obelisk.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Black-obelisk.jpg",
+    title: "Black Obelisk of Shalmaneser III",
+    description: "An Assyrian monument depicting \"Jehu son of Omri\" bowing and presenting tribute — the only surviving ancient image widely believed to depict an Israelite king.",
+    wiki: "Black Obelisk of Shalmaneser III",
+    verses: [["2Ki", 9, 2], ["2Ki", 10, 36]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Sargon%27s_Prism_A_fragments.png/330px-Sargon%27s_Prism_A_fragments.png",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Sargon's_Prism_A_fragments.png",
+    title: "Sargon II's Prism A",
+    description: "Fragments of a clay prism recording the campaigns of Sargon II of Assyria, whose Ashdod campaign is the only place he is named directly in the Bible — for over a century critics doubted a King Sargon existed at all, until Assyriologists rediscovered his inscriptions.",
+    wiki: "Sargon II",
+    verses: [["Isa", 20, 1]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Nabonidus_cylinder_sippar_bm1.jpg/330px-Nabonidus_cylinder_sippar_bm1.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Nabonidus_cylinder_sippar_bm1.jpg",
+    title: "Cylinder of Nabonidus",
+    description: "A clay cylinder of Babylon's last king, Nabonidus, naming his son and co-regent Belshazzar — for a long time critics doubted Belshazzar was ever a real king, since Babylonian king lists ended with Nabonidus, until cylinders like this one confirmed him.",
+    wiki: "Cylinders of Nabonidus",
+    verses: [["Dan", 5, 1]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/The_cuneiform_inscription_highlights_the_conquest_of_Jerusalem_and_the_surrender_of_Jehoiakim%2C_king_of_Judah%2C_in_597_BCE._From_Babylon%2C_Iraq.jpg/330px-The_cuneiform_inscription_highlights_the_conquest_of_Jerusalem_and_the_surrender_of_Jehoiakim%2C_king_of_Judah%2C_in_597_BCE._From_Babylon%2C_Iraq.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:The_cuneiform_inscription_highlights_the_conquest_of_Jerusalem_and_the_surrender_of_Jehoiakim,_king_of_Judah,_in_597_BCE._From_Babylon,_Iraq.jpg",
+    title: "Babylonian Chronicle (Fall of Jerusalem, 597 BC)",
+    description: "A cuneiform tablet from Nebuchadnezzar II's court recording his 597 BC siege of Jerusalem and the surrender of Judah's king — an independent Babylonian record of the very event described in 2 Kings.",
+    wiki: "Nebuchadnezzar Chronicle",
+    verses: [["2Ki", 24, 10], ["2Ki", 24, 12]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Ekron_inscription.jpg/330px-Ekron_inscription.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Ekron_inscription.jpg",
+    title: "Ekron Inscription",
+    description: "A dedicatory inscription from a Philistine temple at Ekron naming the city and its ruling dynasty — the first inscription ever found confirming the name of this Philistine city known from the stories of the ark of the covenant and Elijah.",
+    wiki: "Ekron inscription",
+    verses: [["1Sa", 5, 10], ["2Ki", 1, 2]],
+  },
 ];
 
 // Index of the first artifact whose verse list includes this exact book/chapter/verse,

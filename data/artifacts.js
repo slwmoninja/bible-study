@@ -600,6 +600,41 @@ window.ARTIFACTS = [
     wiki: "Foundation Stone",
     verses: [["2Sa", 24, 18], ["2Sa", 24, 25], ["2Ch", 3, 1]],
   },
+  // The following 4 entries are sourced from images used on Wikipedia's "City of
+  // David (archaeological site)" article (real Wikimedia Commons files, verified
+  // license and URL).
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Stepped_structure_unearthed_in_the_City_of_David.jpg/330px-Stepped_structure_unearthed_in_the_City_of_David.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Stepped_structure_unearthed_in_the_City_of_David.jpg",
+    title: "Stepped Stone Structure",
+    description: "A massive stepped rampart of stone terraces in the City of David, likely a retaining structure for a monumental building above it — commonly linked to the \"Millo\" David and later Solomon are said to have built.",
+    wiki: "Stepped Stone Structure",
+    verses: [["2Sa", 5, 9], ["1Ki", 9, 15]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/KDP_IMG_4885.JPG/330px-KDP_IMG_4885.JPG",
+    photoSource: "https://commons.wikimedia.org/wiki/File:KDP_IMG_4885.JPG",
+    title: "Large Stone Structure",
+    description: "A monumental Iron Age structure atop the City of David ridge that excavator Eilat Mazar controversially identified as the remains of King David's palace, built for him by Hiram of Tyre's craftsmen.",
+    wiki: "Large Stone Structure",
+    verses: [["2Sa", 5, 11], ["2Sa", 7, 2]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/JW_IMG_4893.JPG/330px-JW_IMG_4893.JPG",
+    photoSource: "https://commons.wikimedia.org/wiki/File:JW_IMG_4893.JPG",
+    title: "Jebusite City Wall",
+    description: "A Late Bronze Age wall on the City of David's eastern slope, part of the fortified Jebusite stronghold of Zion that David's men captured to make Jerusalem his capital.",
+    wiki: "Jebusites",
+    verses: [["2Sa", 5, 6], ["2Sa", 5, 7]],
+  },
+  {
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Siloam22.jpg/330px-Siloam22.jpg",
+    photoSource: "https://commons.wikimedia.org/wiki/File:Siloam22.jpg",
+    title: "Gihon Spring Water Channel",
+    description: "The rock-cut channel carrying water from the Gihon Spring, Jerusalem's ancient water source — the spring where Solomon was brought down on David's mule to be anointed king.",
+    wiki: "Gihon Spring",
+    verses: [["1Ki", 1, 33], ["1Ki", 1, 38], ["1Ki", 1, 39]],
+  },
 ];
 
 // Index of the first artifact whose verse list includes this exact book/chapter/verse,

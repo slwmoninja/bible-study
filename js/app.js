@@ -566,6 +566,7 @@ async function renderChapter() {
           <h3>Explore historical &amp; excavation photos</h3>
           <ul>${places.map(p => `
             <li><a href="${bibleCommonsSearchUrl(p.label + " archaeology excavation")}" target="_blank" rel="noopener">${escapeHtml(p.label)}</a>
+                ${p.holyLandPhotos ? `<a class="hlp-link" href="${p.holyLandPhotos}" target="_blank" rel="noopener" title="Photo gallery courtesy HolyLandPhotos.org">Holy Land Photos</a>` : ""}
                 <span class="place-note">${escapeHtml(p.note)}</span></li>`).join("")}
           </ul>
         </div>`
@@ -683,12 +684,19 @@ function attachBookMapIconHandlers() {
   });
 }
 
-// ---------- Something cool (daily artifact) ----------
+// ---------- Something cool (random artifact) ----------
 
 let currentArtifactIndex = 0;
+let lastRandomArtifactIndex = -1;
 
-function showTodaysArtifact() {
-  showArtifactAt(todaysArtifactIndex());
+function showRandomArtifact() {
+  const list = window.ARTIFACTS;
+  let index = Math.floor(Math.random() * list.length);
+  if (list.length > 1 && index === lastRandomArtifactIndex) {
+    index = (index + 1) % list.length;
+  }
+  lastRandomArtifactIndex = index;
+  showArtifactAt(index);
 }
 
 function showArtifactAt(index) {
@@ -720,6 +728,10 @@ function showArtifactAt(index) {
     ? `<p class="settings-note"><a href="${wikiUrl}" target="_blank" rel="noopener">More on Wikipedia</a></p>`
     : "";
 
+  const holyLandPhotosHtml = a.holyLandPhotos
+    ? `<p class="settings-note"><a href="${a.holyLandPhotos}" target="_blank" rel="noopener">More photos courtesy HolyLandPhotos.org</a></p>`
+    : "";
+
   const body = document.getElementById("artifactModalBody");
   body.innerHTML = `
     <div class="artifact-nav">
@@ -731,6 +743,7 @@ function showArtifactAt(index) {
     <h3>${escapeHtml(a.title)}</h3>
     <p>${escapeHtml(a.description)}</p>
     ${secondaryLinkHtml}
+    ${holyLandPhotosHtml}
     <p class="settings-note">Related passages:</p>
     <div class="artifact-verses">${verseLinks}</div>`;
 
@@ -2607,7 +2620,7 @@ function initUI() {
     openNotepad();
   });
   document.getElementById("coolIconBtn").addEventListener("click", () => {
-    showTodaysArtifact();
+    showRandomArtifact();
   });
   // Tapping the title shows a feature summary in the reusable info popup,
   // dismissible via its own close button like every other info modal.

@@ -706,6 +706,13 @@ button.book-art {
 .places-panel li { margin-bottom: 0.4rem; font-size: 0.9rem; }
 .places-panel a { color: var(--maroon); font-weight: bold; text-decoration: none; }
 .places-panel a:hover { text-decoration: underline; }
+.places-panel a.hlp-link {
+  margin-left: 0.5rem;
+  font-weight: normal;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  border-bottom: 1px dotted var(--ink-soft);
+}
 .place-note { display: block; color: var(--ink-soft); font-size: 0.8rem; font-style: italic; }
 
 /* ---------- Modals ---------- */

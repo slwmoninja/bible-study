@@ -1,5 +1,5 @@
-// Curated real archaeological finds connected to the biblical narrative. One is
-// featured per day (cycling through the list by day-of-year), each with a real,
+// Curated real archaeological finds connected to the biblical narrative. A random
+// one is featured each time the discovery icon is tapped, each with a real,
 // verified Wikipedia article and genuine Bible cross-references you can jump to.
 // Wikipedia links point to actual, existing articles (titles checked against the
 // Wikipedia API before inclusion) -- nothing here is a placeholder or guessed URL.
@@ -42,6 +42,7 @@ window.ARTIFACTS = [
     title: "Siloam Inscription",
     description: "A Hebrew inscription carved inside Hezekiah's Tunnel in Jerusalem, describing the moment two teams of tunnelers digging from opposite ends met in the middle.",
     wiki: "Siloam inscription",
+    holyLandPhotos: "https://holylandphotos.org/browse/hezekiahs-tunnel",
     verses: [["2Ki", 20, 20], ["2Ch", 32, 30]],
   },
   {
@@ -130,6 +131,7 @@ window.ARTIFACTS = [
     title: "Siloam Tunnel (Hezekiah's Tunnel)",
     description: "A 533-meter water tunnel cut through solid rock beneath Jerusalem, built to secure the city's water supply from the Gihon Spring ahead of an anticipated Assyrian siege.",
     wiki: "Siloam tunnel",
+    holyLandPhotos: "https://holylandphotos.org/browse/hezekiahs-tunnel",
     verses: [["2Ki", 20, 20], ["2Ch", 32, 2]],
   },
   {
@@ -210,6 +212,7 @@ window.ARTIFACTS = [
     title: "Masada",
     description: "Herod the Great's dramatic mountaintop fortress-palace above the Dead Sea, later the site of the Jewish rebels' last stand against Rome in AD 73.",
     wiki: "Masada",
+    holyLandPhotos: "https://holylandphotos.org/browse/masada-northern-palace",
     verses: [["Mat", 2, 1]],
   },
   {
@@ -218,6 +221,7 @@ window.ARTIFACTS = [
     title: "Qumran Caves",
     description: "The cliffside caves near the Dead Sea where the Dead Sea Scrolls were discovered, likely associated with a Jewish sect contemporary with Jesus and John the Baptist.",
     wiki: "Qumran Caves",
+    holyLandPhotos: "https://holylandphotos.org/browse/qumran",
     verses: [["Mat", 3, 1]],
   },
   {
@@ -226,6 +230,7 @@ window.ARTIFACTS = [
     title: "Tel Megiddo",
     description: "A strategic mound overlooking the Jezreel Valley, the site of countless ancient battles and the namesake of \"Armageddon.\"",
     wiki: "Tel Megiddo",
+    holyLandPhotos: "https://holylandphotos.org/browse/megiddo-israelite",
     verses: [["Rev", 16, 16]],
   },
   {
@@ -234,6 +239,7 @@ window.ARTIFACTS = [
     title: "Tel Hazor",
     description: "The largest tell in ancient Israel, remains of a once-great Canaanite city said to have been burned by Joshua's forces.",
     wiki: "Tel Hazor",
+    holyLandPhotos: "https://holylandphotos.org/browse/hazor",
     verses: [["Jos", 11, 10]],
   },
   {
@@ -242,6 +248,7 @@ window.ARTIFACTS = [
     title: "Tel Be'er Sheva",
     description: "The excavated remains of biblical Beersheba, including a monumental horned altar, associated with the patriarchs' wells at the southern edge of the land.",
     wiki: "Tel Be'er Sheva",
+    holyLandPhotos: "https://holylandphotos.org/browse/beersheba-beer-sheva",
     verses: [["Gen", 21, 31], ["Gen", 26, 33]],
   },
   {
@@ -250,6 +257,7 @@ window.ARTIFACTS = [
     title: "Tel Arad",
     description: "An Israelite fortress in the Negev whose excavated sanctuary — with an altar and a Holy of Holies — offers a rare glimpse of a local temple like those the biblical reforms sought to centralize in Jerusalem.",
     wiki: "Tel Arad",
+    holyLandPhotos: "https://holylandphotos.org/browse/arad-citadel",
     verses: [["2Ki", 18, 4]],
   },
   {
@@ -258,6 +266,7 @@ window.ARTIFACTS = [
     title: "Pool of Bethesda",
     description: "The excavated remains of a large twin pool in Jerusalem, matching John's description of a five-porticoed healing pool where Jesus healed a paralyzed man.",
     wiki: "Pool of Bethesda",
+    holyLandPhotos: "https://holylandphotos.org/browse/pools-of-bethesda",
     verses: [["Jhn", 5, 2]],
   },
   {
@@ -266,6 +275,7 @@ window.ARTIFACTS = [
     title: "Pool of Siloam",
     description: "A monumental stepped pool uncovered in Jerusalem's City of David, identified with the pool where Jesus sent a blind man to wash and receive his sight.",
     wiki: "Pool of Siloam",
+    holyLandPhotos: "https://holylandphotos.org/browse/pool-of-siloam-and-valley-street",
     verses: [["Jhn", 9, 7]],
   },
   {
@@ -274,6 +284,7 @@ window.ARTIFACTS = [
     title: "Capernaum",
     description: "The excavated fishing village on the Sea of Galilee that served as the home base of Jesus's Galilean ministry, including a synagogue and a house traditionally identified as Peter's.",
     wiki: "Capernaum",
+    holyLandPhotos: "https://holylandphotos.org/browse/capernaum",
     verses: [["Mat", 4, 13]],
   },
   {
@@ -282,6 +293,7 @@ window.ARTIFACTS = [
     title: "Herodium",
     description: "Herod the Great's artificial volcano-shaped fortress-palace near Bethlehem, built as his own monument and, according to Josephus, his burial place.",
     wiki: "Herodium",
+    holyLandPhotos: "https://holylandphotos.org/browse/herodium",
     verses: [["Mat", 2, 16]],
   },
   {
@@ -299,14 +311,6 @@ window.ARTIFACTS = [
     description: "A massive Iron Age fortification wall uncovered in Jerusalem's Old City, likely built by Hezekiah to defend the city's expanding population ahead of the Assyrian invasion.",
     wiki: "Broad Wall (Jerusalem)",
     verses: [["Neh", 3, 8], ["Isa", 22, 10]],
-  },
-  {
-    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/James_Ossuary.svg/330px-James_Ossuary.svg.png",
-    photoSource: "https://commons.wikimedia.org/wiki/File:James_Ossuary.svg",
-    title: "James Ossuary",
-    description: "A first-century bone box bearing the disputed inscription \"James, son of Joseph, brother of Jesus\" — if genuine, an early extra-biblical reference to Jesus's family.",
-    wiki: "James Ossuary",
-    verses: [["Mrk", 6, 3], ["Gal", 1, 19]],
   },
   {
     photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Politarch_inscription%2C_Golden_Gate_Thessaloniki%2C_before_1874.png/330px-Politarch_inscription%2C_Golden_Gate_Thessaloniki%2C_before_1874.png",
@@ -385,6 +389,7 @@ window.ARTIFACTS = [
     description: "The last standing retaining wall of the Second Temple's platform in Jerusalem, where pilgrims have gathered to pray for centuries — a physical remnant of the temple complex Jesus predicted would be thrown down.",
     wiki: "Western Wall",
     sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/2/",
+    holyLandPhotos: "https://holylandphotos.org/browse/western-wall",
     verses: [["Mrk", 13, 1], ["Psa", 122, 1]],
   },
   {
@@ -394,6 +399,7 @@ window.ARTIFACTS = [
     description: "A Jerusalem church built over the traditional sites of Golgotha and Jesus's tomb, venerated by pilgrims for nearly two thousand years as the location of the crucifixion and resurrection.",
     wiki: "Church of the Holy Sepulchre",
     sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/3/",
+    holyLandPhotos: "https://holylandphotos.org/browse/exterior-of-church-of-the-holy-sepulcher-5-images",
     verses: [["Jhn", 19, 41], ["Luk", 24, 6]],
   },
   {
@@ -412,6 +418,7 @@ window.ARTIFACTS = [
     description: "A basilica in Bethlehem built over the grotto traditionally venerated as the birthplace of Jesus, among the oldest continuously operating churches in the world.",
     wiki: "Church of the Nativity",
     sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/5/",
+    holyLandPhotos: "https://holylandphotos.org/browse/bethlehem-church-of-the-nativity",
     verses: [["Luk", 2, 4], ["Mic", 5, 2]],
   },
   {
@@ -421,6 +428,7 @@ window.ARTIFACTS = [
     description: "The freshwater lake in northern Israel that formed the backdrop for much of Jesus's ministry, including the calming of the storm and the miraculous catch of fish.",
     wiki: "Sea of Galilee",
     sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/7/",
+    holyLandPhotos: "https://holylandphotos.org/browse/views-of-sea-of-galilee",
     verses: [["Mat", 8, 24], ["Luk", 5, 4]],
   },
   {
@@ -430,6 +438,7 @@ window.ARTIFACTS = [
     description: "The hypersaline lake at the lowest point on Earth's land surface, called the Salt Sea in the Old Testament, marking the southern boundary of the land promised to Israel.",
     wiki: "Dead Sea",
     sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/8/",
+    holyLandPhotos: "https://holylandphotos.org/browse/dead-sea",
     verses: [["Gen", 14, 3], ["Ezk", 47, 8]],
   },
   {
@@ -439,6 +448,7 @@ window.ARTIFACTS = [
     description: "The ridge east of Jerusalem's Old City where Jesus wept over the city and taught his disciples, and from which, according to the Gospels and Acts, he ascended into heaven.",
     wiki: "Mount of Olives",
     sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/10/",
+    holyLandPhotos: "https://holylandphotos.org/browse/views-from-the-mount-of-olives",
     verses: [["Act", 1, 9], ["Zec", 14, 4]],
   },
   {
@@ -448,6 +458,7 @@ window.ARTIFACTS = [
     description: "One of the oldest continuously inhabited cities in the world, remembered in the book of Joshua as the fortified city whose walls fell after the Israelites marched around it for seven days.",
     wiki: "Jericho",
     sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/12/",
+    holyLandPhotos: "https://holylandphotos.org/browse/jericho-ot",
     verses: [["Jos", 6, 20]],
   },
   {
@@ -457,6 +468,7 @@ window.ARTIFACTS = [
     description: "A Nabataean city in Jordan carved into rose-red sandstone cliffs, often identified with the biblical Sela, the rock-cut stronghold of Edom.",
     wiki: "Petra",
     sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/13/",
+    holyLandPhotos: "https://holylandphotos.org/browse/petra-treasury-and-monastery",
     verses: [["Oba", 1, 3], ["2Ki", 14, 7]],
   },
   {
@@ -466,6 +478,7 @@ window.ARTIFACTS = [
     description: "The elevated platform in Jerusalem's Old City that once held Solomon's Temple and later Herod's Temple; today it is home to the Dome of the Rock and al-Aqsa Mosque.",
     wiki: "Temple Mount",
     sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/15/",
+    holyLandPhotos: "https://holylandphotos.org/browse/dome-of-the-rock-central",
     verses: [["1Ki", 6, 1], ["2Ch", 3, 1]],
   },
   {
@@ -484,6 +497,7 @@ window.ARTIFACTS = [
     description: "An ancient enclosure in Hebron built over the cave traditionally believed to hold the tombs of Abraham, Sarah, Isaac, Rebekah, Jacob, and Leah — the burial field Abraham purchased from Ephron the Hittite.",
     wiki: "Cave of the Patriarchs",
     sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/18/",
+    holyLandPhotos: "https://holylandphotos.org/browse/hebron",
     verses: [["Gen", 23, 19], ["Gen", 49, 31]],
   },
   {
@@ -493,6 +507,7 @@ window.ARTIFACTS = [
     description: "The river running through the Jordan Rift Valley, crossed by the Israelites entering the Promised Land and, centuries later, the site of Jesus's baptism by John.",
     wiki: "Jordan River",
     sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/19/",
+    holyLandPhotos: "https://holylandphotos.org/browse/qasr-el-yahud-baptismal-site",
     verses: [["Jos", 3, 17], ["Mat", 3, 13]],
   },
   {
@@ -502,20 +517,10 @@ window.ARTIFACTS = [
     description: "An olive grove at the foot of the Mount of Olives, home to trees over a thousand years old, traditionally venerated as the place where Jesus prayed in anguish the night before his crucifixion.",
     wiki: "Garden of Gethsemane",
     sourceUrl: "https://historycollection.com/20-biblical-sites-and-landmarks-that-still-exist-today/20/",
+    holyLandPhotos: "https://holylandphotos.org/browse/gethsemane",
     verses: [["Mat", 26, 36]],
   },
 ];
-
-function todaysArtifactIndex() {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 0);
-  const dayOfYear = Math.floor((now - start) / 86400000);
-  return dayOfYear % window.ARTIFACTS.length;
-}
-
-function todaysArtifact() {
-  return window.ARTIFACTS[todaysArtifactIndex()];
-}
 
 // Index of the first artifact whose verse list includes this exact book/chapter/verse,
 // or -1 if none. Used to show a jump-to-discovery icon next to matching verses.

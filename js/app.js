@@ -707,10 +707,16 @@ function showArtifactAt(index) {
   const wikiUrl = a.wiki
     ? "https://en.wikipedia.org/wiki/" + encodeURIComponent(a.wiki.replace(/ /g, "_"))
     : null;
+  // Photos hosted directly by HolyLandPhotos.org (rather than Wikimedia Commons) must
+  // carry visible credit per their terms of use -- detected by photo domain so the
+  // requirement travels with the image itself rather than needing a separate flag.
+  const isHolyLandPhoto = !!(a.photo && a.photo.includes("holylandphotos.org"));
   // BAS entries link out to the source article first; the Wikipedia link (if any)
   // is offered as a secondary line rather than being replaced outright.
-  const primaryUrl = a.sourceUrl || wikiUrl;
-  const primaryTitle = a.sourceUrl ? "Read more at Biblical Archaeology Society" : "Read more on Wikipedia";
+  const primaryUrl = a.sourceUrl || (isHolyLandPhoto ? a.holyLandPhotos : null) || wikiUrl;
+  const primaryTitle = a.sourceUrl
+    ? "Read more at Biblical Archaeology Society"
+    : isHolyLandPhoto ? "Photo courtesy of HolyLandPhotos.org" : "Read more on Wikipedia";
 
   const verseLinks = a.verses.map(([book, ch, vs]) => {
     const meta = bookMeta(book);
@@ -724,8 +730,14 @@ function showArtifactAt(index) {
        </a>`
     : "";
 
+  const photoCreditHtml = isHolyLandPhoto
+    ? `<p class="photo-credit">Photo courtesy of <a href="${a.holyLandPhotos}" target="_blank" rel="noopener">www.HolyLandPhotos.org</a></p>`
+    : "";
+
+  // When the photo itself is already credited to HolyLandPhotos.org (photoCreditHtml,
+  // just below the image), skip repeating that same link here to avoid double-crediting.
   const seeMoreLinks = [
-    a.holyLandPhotos ? `<a href="${a.holyLandPhotos}" target="_blank" rel="noopener">HolyLandPhotos.org</a>` : "",
+    a.holyLandPhotos && !isHolyLandPhoto ? `<a href="${a.holyLandPhotos}" target="_blank" rel="noopener">HolyLandPhotos.org</a>` : "",
     wikiUrl ? `<a href="${wikiUrl}" target="_blank" rel="noopener">Wikipedia</a>` : "",
   ].filter(Boolean);
   const seeMoreHtml = seeMoreLinks.length
@@ -740,6 +752,7 @@ function showArtifactAt(index) {
       <button class="artifact-nav-btn artifact-next" title="Next discovery" aria-label="Next discovery">&#8250;</button>
     </div>
     ${photoHtml}
+    ${photoCreditHtml}
     <h3>${escapeHtml(a.title)}</h3>
     ${seeMoreHtml}
     <p>${escapeHtml(a.description)}</p>

@@ -637,6 +637,13 @@ button.book-art {
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
+.photo-credit {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  margin: -0.5rem 0 0.8rem;
+}
+.photo-credit a { color: var(--ink-soft); }
 
 /* Book-art lightbox (see openBookArtModal() in js/app.js) */
 .book-art-photo { display: block; margin-bottom: 0.8rem; text-align: center; }

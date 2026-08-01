@@ -520,6 +520,42 @@ window.ARTIFACTS = [
     holyLandPhotos: "https://holylandphotos.org/browse/gethsemane",
     verses: [["Mat", 26, 36]],
   },
+  // The following 4 entries use photos hosted directly by HolyLandPhotos.org rather
+  // than Wikimedia Commons. Their terms (holylandphotos.org/pages/permission-to-use)
+  // allow up to 4 images to be used on a non-commercial website with visible credit --
+  // showArtifactAt() in js/app.js detects these by photo domain and renders that credit.
+  {
+    photo: "https://photos.holylandphotos.org/ICHJSF01.jpg",
+    holyLandPhotos: "https://holylandphotos.org/browse/bethlehem-shepherds-field",
+    title: "Shepherds' Field, Bethlehem",
+    description: "Fields outside Bethlehem traditionally identified as the place where shepherds were watching their flocks by night when an angel announced the birth of Jesus.",
+    wiki: "Chapel of the Shepherds' Field",
+    verses: [["Luk", 2, 8]],
+  },
+  {
+    photo: "https://photos.holylandphotos.org/INSGMB04.jpg",
+    holyLandPhotos: "https://holylandphotos.org/browse/mount-of-beatitudes",
+    title: "Mount of Beatitudes",
+    description: "A hillside above the Sea of Galilee traditionally identified as the site of the Sermon on the Mount, where Jesus taught the Beatitudes.",
+    wiki: "Mount of Beatitudes",
+    verses: [["Mat", 5, 1]],
+  },
+  {
+    photo: "https://photos.holylandphotos.org/INHVCPCP03.jpg",
+    holyLandPhotos: "https://holylandphotos.org/browse/caesarea-philippi",
+    title: "Caesarea Philippi (Banias)",
+    description: "A city at the foot of Mount Hermon, near a rock face once honeycombed with niches for pagan idols, where Jesus asked his disciples \"Who do you say that I am?\" and Peter confessed him as the Christ.",
+    wiki: "Caesarea Philippi",
+    verses: [["Mat", 16, 13]],
+  },
+  {
+    photo: "https://photos.holylandphotos.org/ICDSEG12.jpg",
+    holyLandPhotos: "https://holylandphotos.org/browse/en-gedi",
+    title: "En Gedi",
+    description: "An oasis of springs and caves on the western shore of the Dead Sea where David hid from Saul among the rocks and famously spared the king's life in a cave.",
+    wiki: "Ein Gedi",
+    verses: [["1Sa", 24, 1]],
+  },
 ];
 
 // Index of the first artifact whose verse list includes this exact book/chapter/verse,

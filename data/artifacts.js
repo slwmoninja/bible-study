@@ -530,7 +530,10 @@ window.ARTIFACTS = [
     title: "Shepherds' Field, Bethlehem",
     description: "Fields outside Bethlehem traditionally identified as the place where shepherds were watching their flocks by night when an angel announced the birth of Jesus.",
     wiki: "Chapel of the Shepherds' Field",
-    verses: [["Luk", 2, 8]],
+    // "Shepherds' Field" is a traditional site name, not itself a place named in
+    // scripture -- these are every verse of Luke 2 where the shepherds are actually
+    // described as being at/returning to the field (2:9-19 shifts to the manger scene).
+    verses: [["Luk", 2, 8], ["Luk", 2, 15], ["Luk", 2, 20]],
   },
   {
     photo: "https://photos.holylandphotos.org/INSGMB04.jpg",
@@ -538,7 +541,9 @@ window.ARTIFACTS = [
     title: "Mount of Beatitudes",
     description: "A hillside above the Sea of Galilee traditionally identified as the site of the Sermon on the Mount, where Jesus taught the Beatitudes.",
     wiki: "Mount of Beatitudes",
-    verses: [["Mat", 5, 1]],
+    // Likewise a traditional site name -- every Gospel verse that explicitly places
+    // this teaching "in/on the mountain" (Matthew) or its Lukan parallel (Luke 6).
+    verses: [["Mat", 5, 1], ["Mat", 8, 1], ["Luk", 6, 12], ["Luk", 6, 17]],
   },
   {
     photo: "https://photos.holylandphotos.org/INHVCPCP03.jpg",
@@ -546,7 +551,9 @@ window.ARTIFACTS = [
     title: "Caesarea Philippi (Banias)",
     description: "A city at the foot of Mount Hermon, near a rock face once honeycombed with niches for pagan idols, where Jesus asked his disciples \"Who do you say that I am?\" and Peter confessed him as the Christ.",
     wiki: "Caesarea Philippi",
-    verses: [["Mat", 16, 13]],
+    // Every verse naming "Caesarea Philippi" in the Bible (confirmed by full-text
+    // search of the app's own ASV data -- Mark's parallel account is the only other one).
+    verses: [["Mat", 16, 13], ["Mrk", 8, 27]],
   },
   {
     photo: "https://photos.holylandphotos.org/ICDSEG12.jpg",
@@ -554,7 +561,10 @@ window.ARTIFACTS = [
     title: "En Gedi",
     description: "An oasis of springs and caves on the western shore of the Dead Sea where David hid from Saul among the rocks and famously spared the king's life in a cave.",
     wiki: "Ein Gedi",
-    verses: [["1Sa", 24, 1]],
+    // Every verse naming "En-gedi" in the Bible (confirmed by full-text search of the
+    // app's own ASV data): a border town of Judah, David's hideout, a battle site,
+    // a vineyard in the Song of Solomon, and a prophesied fishing spot in Ezekiel.
+    verses: [["Jos", 15, 62], ["1Sa", 23, 29], ["1Sa", 24, 1], ["2Ch", 20, 2], ["Sng", 1, 14], ["Ezk", 47, 10]],
   },
 ];
 

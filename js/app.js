@@ -2,7 +2,7 @@
 // change from here on so a reload can be visually confirmed against what was
 // actually deployed. Distinct from service-worker.js's CACHE_VERSION (that one
 // gates the offline cache/data schema, unrelated to this app-code version).
-const APP_VERSION = "1.0.1";
+const APP_VERSION = "1.0.2";
 
 const LOCAL_VERSION_IDS = ["ASV", "KJV", "YLT"];
 const YOUVERSION_ID = "YV"; // the app's primary/default version -- see js/youversion.js
@@ -2348,6 +2348,14 @@ function eraseAllData() {
 // already use for their own normal localStorage persistence (see js/notes.js,
 // js/journal.js, js/errorlog.js) -- a backup is just a portable snapshot of
 // them, not a second parallel storage format.
+//
+// Separate from all of this: "Exit App Backup" further down (search for that name) IS
+// silently triggered on backgrounding -- but it's an app-owned IndexedDB safety net the
+// user never sees or manages, not this user-facing downloaded-file flow. The two don't
+// share a dedup fingerprint or a trigger; don't conflate them. This app doesn't currently
+// have a restore-on-empty-state auto-detect flow (nothing prompts a fresh/wiped install to
+// restore automatically) -- if one is ever added, Exit App Backup's snapshot is meant to
+// become an extra silent candidate source for it, ahead of the file-handle-based path.
 const BACKUP_KEYS = ["bibleAppSettings", "bibleAppLastLocation", "bibleAppNotes", "bibleAppJournal", "bibleAppErrorLog"];
 
 // Minimal IndexedDB wrapper for the one thing it's used for: persisting a
@@ -2538,6 +2546,81 @@ function initInstallAndBackupControls() {
 
   renderInstallUI();
 }
+
+// ---------- Exit App Backup (silent safety net, distinct from "Back up now") ----------
+// Separate from everything above: no button, no toast, no file the user has to manage.
+// Instead this silently overwrites ONE fixed IndexedDB record every time the app
+// backgrounds, as a safety net for whatever happened between manual backups -- and (if
+// this app ever grows a restore-on-empty-state auto-detect flow, which it doesn't yet;
+// see the note by BACKUP_KEYS above) a silent extra candidate source ahead of the
+// file-handle-based path. It reuses collectBackupData()/BACKUP_KEYS above -- same payload
+// shape as a real backup file, just written to IndexedDB instead of downloaded.
+//
+// A dedicated database, isolated from BACKUP_HANDLE_DB above, so this can't accidentally
+// interfere with the file-handle persistence the manual "Back up now" path depends on.
+const EXIT_BACKUP_DB = "bible-study-exit-backup", EXIT_BACKUP_STORE = "snapshot", EXIT_BACKUP_KEY = "latest";
+function openExitBackupDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(EXIT_BACKUP_DB, 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore(EXIT_BACKUP_STORE); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// Fields left out of the dedup fingerprint below -- pure bookkeeping that can change on
+// its own (an error recorded mid-session) without representing anything a user would
+// consider "my data changed enough to write another silent snapshot for it". The backup
+// payload actually written still includes them in full (same BACKUP_KEYS as a real
+// backup file) -- only the change-detector ignores them.
+const EXIT_BACKUP_FINGERPRINT_EXCLUDE_KEYS = ["bibleAppErrorLog"];
+const EXIT_BACKUP_FINGERPRINT_STORAGE_KEY = "bibleAppExitBackupFingerprint";
+
+// Plain JSON.stringify of the filtered payload is enough of a change-detector for one
+// same-device comparison -- no need for a real hash for this.
+function computeExitBackupFingerprint(data) {
+  const filtered = {};
+  for (const key of Object.keys(data)) {
+    if (!EXIT_BACKUP_FINGERPRINT_EXCLUDE_KEYS.includes(key)) filtered[key] = data[key];
+  }
+  return JSON.stringify(filtered);
+}
+
+// Never throws and never shows anything -- this runs from visibilitychange/pagehide
+// handlers below, which must not be able to interrupt the app backgrounding/closing over
+// a failed write. Skips the write entirely once the fingerprint shows nothing worth
+// re-writing since the last snapshot, same "don't pile up redundant writes for no reason"
+// rule as the manual "Back up now" path's own dedup is meant to follow.
+async function writeExitBackup() {
+  try {
+    const payload = collectBackupData();
+    const fingerprint = computeExitBackupFingerprint(payload.data);
+    let lastFingerprint = null;
+    try { lastFingerprint = localStorage.getItem(EXIT_BACKUP_FINGERPRINT_STORAGE_KEY); } catch (e) {}
+    if (fingerprint === lastFingerprint) return;
+
+    const db = await openExitBackupDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(EXIT_BACKUP_STORE, "readwrite");
+      tx.objectStore(EXIT_BACKUP_STORE).put(payload, EXIT_BACKUP_KEY);
+      tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
+    });
+    try { localStorage.setItem(EXIT_BACKUP_FINGERPRINT_STORAGE_KEY, fingerprint); } catch (e) {}
+  } catch (e) { /* best-effort safety net -- never surface a failure here */ }
+}
+
+// visibilitychange -> "hidden" is the primary trigger: it's what actually fires
+// reliably on a phone (app switch, screen lock, tab switch) -- this app's own
+// checkForUpdate() above already hooks the "visible" half of this same event. pagehide is
+// a redundant second trigger for a hard close/navigate-away that skips straight past a
+// "hidden" visibilitychange on some browsers. Deliberately NOT beforeunload -- unreliable
+// on mobile (where this app is primarily used) and increasingly disabled by browsers
+// outright. Both wired once here at module load, same as the other top-level
+// install/update listeners above -- never re-wired from initUI()'s per-render setup.
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") writeExitBackup();
+});
+window.addEventListener("pagehide", () => { writeExitBackup(); });
 
 /* =========================================================
    PULL-TO-REFRESH -- forces an update check on demand instead of waiting for

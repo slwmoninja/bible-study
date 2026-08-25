@@ -2192,6 +2192,37 @@ function renderInstallUI() {
     settingsSlot.innerHTML = installPillHtml("settingsInstallBtn");
     wireInstallBtn("settingsInstallBtn");
   }
+  renderResetInstallStatus();
+}
+// Self-heal for a stale installPromptAccepted flag: uninstalling the PWA from
+// the Home Screen does NOT clear this app's localStorage, so isInstalled()
+// can keep reporting true (hiding the real Install pill everywhere except
+// Settings, and routing a Settings tap to uninstall instructions) even after
+// a genuine uninstall. beforeinstallprompt firing is the automatic half of
+// the fix (Chrome only fires it when it believes the app is NOT currently
+// installed); this link is the immediate, tap-now half, for the ambiguous
+// window before that event happens to arrive again. Shown only when running
+// in a regular tab (not standalone) while the flag still claims installed --
+// legitimately-installed-but-viewing-in-a-tab looks identical to
+// stale-flag-after-uninstall from the page's point of view, so this is
+// deliberately opt-in rather than automatic.
+function renderResetInstallStatus() {
+  const slot = document.getElementById("resetInstallSlot");
+  if (!slot) return;
+  if (!isStandaloneApp() && state.settings.installPromptAccepted) {
+    slot.innerHTML = `<p class="settings-note"><a href="#" id="resetInstallStatusLink">Not on your Home Screen? Reset install status</a></p>`;
+    const link = document.getElementById("resetInstallStatusLink");
+    if (link) {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        state.settings.installPromptAccepted = false;
+        saveSettings();
+        renderInstallUI();
+      });
+    }
+  } else {
+    slot.innerHTML = "";
+  }
 }
 // Platform-agnostic (a page can't reliably detect device type) instructions --
 // the real install/uninstall action always happens at the OS level, so these
@@ -2305,6 +2336,17 @@ let deferredInstallPrompt = null;
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredInstallPrompt = e;
+  // Chrome only fires this event when it believes the app is NOT currently
+  // installed for this origin -- that's the one reliable signal that a
+  // previously-set installPromptAccepted flag is stale (e.g. a real Home
+  // Screen uninstall, which doesn't clear localStorage). Drop it here so the
+  // real Install flow takes back over automatically; see
+  // renderResetInstallStatus() above for the immediate, tap-now half of this
+  // fix for the window before this event happens to fire again.
+  if (state.settings.installPromptAccepted) {
+    state.settings.installPromptAccepted = false;
+    saveSettings();
+  }
   renderInstallUI();
 });
 window.addEventListener("appinstalled", () => {

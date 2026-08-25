@@ -236,6 +236,13 @@
   </div>
   <div class="modal-body">
 
+    <!-- Populated by renderInstallUI() -- shown only when the persisted
+         installPromptAccepted flag looks stale (set true, but not actually
+         running standalone). See the beforeinstallprompt handler in
+         js/app.js for why this can happen (a real Home Screen uninstall
+         doesn't clear localStorage) and for the automatic half of the fix. -->
+    <div id="resetInstallSlot"></div>
+
     <h3>Bible versions</h3>
     <p class="settings-note">Choose one version to read.</p>
     <div class="version-toggle-group">

@@ -71,7 +71,19 @@ def main():
     if not match:
         sys.exit("Could not find CORE_ASSETS array in service-worker.js")
 
-    rel_paths = [p for p in re.findall(r'"\./([^"]*)"', match.group(1)) if p]
+    # Quote-agnostic on purpose: a real bug found and fixed in LocalWork
+    # (2026-08-25) had this regex hardcoded to double quotes while the array
+    # it was parsing used single quotes, so it silently matched zero files --
+    # the resulting hash was derived from the service worker's own
+    # fetch-handling code alone, never actually reacting to real precached-file
+    # edits, while every commit still printed a plausible "already up to date".
+    rel_paths = [p for p in re.findall(r"[\"']\./([^\"']*)[\"']", match.group(1)) if p]
+    if not rel_paths:
+        sys.exit(
+            "CORE_ASSETS parsed to zero files -- the regex likely doesn't match "
+            "this array's actual quote/prefix style. Fix the regex; a silent "
+            "zero-file parse must never pass as success."
+        )
 
     hasher = hashlib.sha256()
     for rel_path in rel_paths:
